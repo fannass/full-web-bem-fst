@@ -1,0 +1,36 @@
+# Robots.txt for BEM FST UNISA Website
+# Instruksi untuk search engine crawlers
+
+# Allow all robots
+User-agent: *
+Allow: /
+Disallow: /admin/*
+Disallow: /admin/login
+Disallow: /*.json$
+Disallow: /*.env
+Disallow: /node_modules/
+
+# Crawl delay (milliseconds)
+Crawl-delay: 1
+
+# Dynamic Sitemap location
+# Note: Sitemap dapat di-generate secara dinamis dari API:
+# GET http://localhost:3000/api/v1/posts/sitemap/xml
+
+# For local development:
+Sitemap: http://localhost:3001/sitemap.xml
+
+# For production, replace localhost:3001 dengan domain Anda:
+# Sitemap: https://yourdomain.com/sitemap.xml
+
+# Uncomment for production to improve crawl efficiency:
+# User-agent: Googlebot
+# Allow: /
+# Crawl-delay: 0
+
+# Block bad bots
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /

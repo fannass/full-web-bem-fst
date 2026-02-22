@@ -1,0 +1,5 @@
+{
+  "name": "BEM FST UNISA Frontend",
+  "description": "Official frontend landing page for BEM FST UNISA built with React, TypeScript, and Tailwind CSS. Features dynamic content loading, SEO optimization, and a modern campus aesthetic.",
+  "requestFramePermissions": []
+}
