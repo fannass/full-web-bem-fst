@@ -3,7 +3,7 @@
 # 🎓 BEM FST UNISA — Full-Stack Web Application
 
 **Platform digital resmi Badan Eksekutif Mahasiswa Fakultas Sains & Teknologi**  
-Universitas Islam Al-Syafi'iyah (UNISA)
+Universitas 'Aisyiyah Yogyakarta
 
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react)](https://react.dev)
 [![NestJS](https://img.shields.io/badge/NestJS-10-E0234E?style=flat-square&logo=nestjs)](https://nestjs.com)
@@ -509,7 +509,7 @@ npm run preview    # Preview hasil build production
 
 <div align="center">
 
-**BEM FST UNISA** · Fakultas Sains & Teknologi · Universitas Islam Al-Syafi'iyah
+**BEM FST UNISA** · Fakultas Sains & Teknologi · Universitas 'Aisyiyah Yogyakarta
 
 *Built with ❤️ using React + NestJS + Prisma*
 
