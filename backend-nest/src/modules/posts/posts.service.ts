@@ -4,6 +4,7 @@ import { CreatePostDto, PostStatus, PostCategory } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fileTypeFromBuffer } from 'file-type';
 
 @Injectable()
 export class PostsService {
@@ -54,15 +55,20 @@ export class PostsService {
         throw error;
       }
       console.error('Error creating post:', error);
-      throw new InternalServerErrorException(`Gagal membuat post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException('Gagal membuat post, silakan coba lagi');
     }
   }
 
-  async findAll(page: number = 1, limit: number = 6) {
+  async findAll(page: number = 1, limit: number = 6, status?: string) {
     const skip = (page - 1) * limit;
 
-    // Filter out soft-deleted posts
-    const where = { deleted_at: null };
+    // Base filter: exclude soft-deleted posts
+    const where: any = { deleted_at: null };
+
+    // Filter by status when provided (e.g. 'published' for public endpoint)
+    if (status) {
+      where.status = status;
+    }
 
     const [posts, total] = await Promise.all([
       this.prisma.posts.findMany({
@@ -172,7 +178,7 @@ export class PostsService {
         throw error;
       }
       console.error('Error updating post:', error);
-      throw new InternalServerErrorException(`Gagal memperbarui post: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException('Gagal memperbarui post, silakan coba lagi');
     }
   }
 
@@ -219,6 +225,12 @@ export class PostsService {
       throw new BadRequestException(`Tipe file tidak didukung. Gunakan: JPEG, PNG, GIF, WebP`);
     }
 
+    // Verifikasi magic bytes — mencegah file berbahaya meski MIME header dimanipulasi
+    const realType = await fileTypeFromBuffer(file.buffer);
+    if (!realType || !allowedMimeTypes.includes(realType.mime)) {
+      throw new BadRequestException(`File tidak valid: konten file tidak sesuai dengan tipe gambar`);
+    }
+
     // Create uploads directory if not exists
     const uploadDir = path.join(process.cwd(), 'uploads', 'posts');
     if (!fs.existsSync(uploadDir)) {
@@ -228,7 +240,14 @@ export class PostsService {
     // Generate unique filename
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8);
-    const ext = path.extname(file.originalname);
+    // Derive extension from verified MIME type, not originalname (prevents bypass)
+    const mimeToExt: Record<string, string> = {
+      'image/jpeg': '.jpg',
+      'image/png': '.png',
+      'image/gif': '.gif',
+      'image/webp': '.webp',
+    };
+    const ext = mimeToExt[file.mimetype] ?? '.jpg';
     const filename = `${timestamp}_${random}${ext}`;
 
     const filepath = path.join(uploadDir, filename);

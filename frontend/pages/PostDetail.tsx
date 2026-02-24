@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import DOMPurify from 'dompurify';
 import { api } from '../services/api';
 import { Post } from '../types';
 import { Skeleton } from '../components/Skeleton';
@@ -12,13 +13,17 @@ export const PostDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useSEO({ 
-    title: post ? (post.meta_title || post.title) : "Memuat...", 
-    description: post ? (post.meta_description || post.excerpt) : "Baca artikel berita dan event dari BEM FST UNISA",
+    title: post ? (post.meta_title || post.title) : 'Memuat Artikel...', 
+    description: post ? (post.meta_description || post.excerpt) : 'Baca artikel berita dan event dari BEM FST UNISA',
     imageUrl: post ? (post.og_image || post.image_url) : undefined,
+    imageAlt: post ? post.title : undefined,
     url: typeof window !== 'undefined' ? window.location.href : '',
+    canonicalUrl: post?.canonical_url || undefined,
     type: 'article',
     author: post ? post.author : 'BEM FST UNISA',
     publishedDate: post ? new Date(post.created_at).toISOString() : undefined,
+    keywords: post ? `${post.category}, berita mahasiswa, BEM FST` : undefined,
+    section: post ? post.category : undefined,
   });
 
   useEffect(() => {
@@ -86,9 +91,49 @@ export const PostDetail: React.FC = () => {
         </header>
 
         {/* Content */}
-        <div className="prose prose-lg prose-slate dark:prose-invert mx-auto max-w-none">
-          {/* We inject the HTML but in a real app sanitization is needed */}
-          <div dangerouslySetInnerHTML={{ __html: post.content }} />
+        <div className="post-content">
+          <style>{`
+            .post-content { line-height: 1.8; font-size: 1.0625rem; color: inherit; }
+            .post-content h1 { font-size: 1.875rem; font-weight: 800; margin: 1.75rem 0 0.75rem; line-height: 1.2; }
+            .post-content h2 { font-size: 1.5rem; font-weight: 700; margin: 1.5rem 0 0.75rem; line-height: 1.3; }
+            .post-content h3 { font-size: 1.25rem; font-weight: 700; margin: 1.25rem 0 0.5rem; line-height: 1.4; }
+            .post-content p { margin: 0.875rem 0; }
+            .post-content ul { list-style-type: disc; padding-left: 1.75rem; margin: 0.875rem 0; }
+            .post-content ol { list-style-type: decimal; padding-left: 1.75rem; margin: 0.875rem 0; }
+            .post-content li { margin: 0.35rem 0; padding-left: 0.25rem; }
+            .post-content li > ul { list-style-type: circle; margin: 0.25rem 0; }
+            .post-content li > ol { margin: 0.25rem 0; }
+            .post-content strong, .post-content b { font-weight: 700; }
+            .post-content em, .post-content i { font-style: italic; }
+            .post-content u { text-decoration: underline; }
+            .post-content s { text-decoration: line-through; }
+            .post-content a { color: #2563eb; text-decoration: underline; }
+            .post-content a:hover { color: #1d4ed8; }
+            .post-content blockquote { border-left: 4px solid #60a5fa; padding: 0.5rem 1rem; margin: 1rem 0; color: #6b7280; font-style: italic; background: rgba(96,165,250,0.07); border-radius: 0 0.5rem 0.5rem 0; }
+            .post-content code { background: #f1f5f9; color: #0f172a; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875em; font-family: monospace; }
+            .post-content pre { background: #0f172a; color: #e2e8f0; padding: 1rem 1.25rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; font-size: 0.9rem; }
+            .post-content pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+            .post-content hr { border: none; border-top: 2px solid #e2e8f0; margin: 2rem 0; }
+            .post-content img { border-radius: 0.75rem; box-shadow: 0 4px 16px rgba(0,0,0,0.12); max-width: 100%; height: auto; margin: 1rem auto; display: block; }
+            .post-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.95rem; }
+            .post-content th, .post-content td { border: 1px solid #e2e8f0; padding: 0.5rem 0.75rem; text-align: left; }
+            .post-content th { background: #f8fafc; font-weight: 700; }
+            @media (prefers-color-scheme: dark) {
+              .post-content a { color: #60a5fa; }
+              .post-content code { background: #1e293b; color: #e2e8f0; }
+              .post-content blockquote { color: #94a3b8; background: rgba(96,165,250,0.05); }
+              .post-content hr { border-color: #334155; }
+              .post-content th { background: #1e293b; }
+              .post-content th, .post-content td { border-color: #334155; }
+            }
+          `}</style>
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.content, {
+            ALLOWED_TAGS: ['p','br','h1','h2','h3','h4','h5','h6','strong','b','em','i','u','s',
+              'ul','ol','li','a','blockquote','code','pre','hr','img','table','thead','tbody','tr','th','td'],
+            ALLOWED_ATTR: ['href','src','alt','title','class','target','rel','width','height'],
+            FORBID_TAGS: ['script','iframe','object','embed','form','input','button','style'],
+            FORBID_ATTR: ['onerror','onload','onclick','onmouseover','onfocus','onblur','onchange','onsubmit'],
+          }) }} />
         </div>
 
         {/* Footer */}

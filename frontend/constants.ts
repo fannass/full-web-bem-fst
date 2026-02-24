@@ -1,6 +1,7 @@
 export const APP_NAME = "BEM FST UNISA";
-export const API_BASE_URL = "http://localhost:3000/api/v1";
-export const STORAGE_BASE_URL = "http://localhost:3000";
+// Gunakan environment variable — fallback ke localhost hanya untuk development
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/api/v1";
+export const STORAGE_BASE_URL = import.meta.env.VITE_STORAGE_BASE_URL || "http://localhost:3000";
 
 export const NAV_LINKS = [
   { name: 'Beranda', path: '/' },

@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
     return {
       server: {
         port: 3001,
-        host: '0.0.0.0',
+        host: '127.0.0.1', // hanya localhost, tidak expose ke jaringan lokal
         proxy: {
           '/api': {
             target: 'http://localhost:3000',
@@ -17,10 +17,9 @@ export default defineConfig(({ mode }) => {
         }
       },
       plugins: [react()],
-      define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
-      },
+      // SECURITY: Jangan expose API keys ke client-side bundle.
+      // Jika butuh Gemini AI, panggil melalui backend (proxy), bukan langsung dari frontend.
+      define: {},
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

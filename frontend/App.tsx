@@ -15,6 +15,7 @@ import { AdminPosts } from './pages/admin/AdminPosts';
 import { AdminCabinet } from './pages/admin/AdminCabinet';
 import { AdminOrganization } from './pages/admin/AdminOrganization';
 import { AdminPeriods } from './pages/admin/AdminPeriods';
+import { AdminActivityLog } from './pages/admin/AdminActivityLog';
 import { api } from './services/api';
 import { OrganizationProfile } from './types';
 import { ThemeProvider as DarkModeProvider } from './context/ThemeContext';
@@ -97,6 +98,14 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <AdminPeriods />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/activity-log"
+              element={
+                <ProtectedRoute>
+                  <AdminActivityLog />
                 </ProtectedRoute>
               }
             />

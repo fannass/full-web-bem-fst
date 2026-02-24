@@ -35,7 +35,6 @@ const getImageUrl = (storagePath: string | null): string => {
   // If relative path, prepend storage URL
   const storageUrl = getStorageBaseUrl();
   const imageUrl = `${storageUrl}/uploads/${path}`;
-  console.log('[Images] Loading image from:', imageUrl);
   return imageUrl;
 };
 
@@ -245,15 +244,16 @@ class ApiService {
   }
 
   // ===== POSTS (PUBLIC) =====
-  async getPosts(page = 1, perPage = 6, skipCache = false): Promise<PaginatedResponse<Post>> {
-    const cacheKey = `/posts?page=${page}&per_page=${perPage}`;
+  async getPosts(page = 1, perPage = 6, skipCache = false, onlyPublished = true): Promise<PaginatedResponse<Post>> {
+    const statusParam = onlyPublished ? '&status=published' : '';
+    const cacheKey = `/posts?page=${page}&per_page=${perPage}${onlyPublished ? '&status=published' : ''}`;
     
     if (!skipCache && this.isCacheValid(cacheKey)) {
       return this.cache.get(cacheKey)!.data;
     }
 
     try {
-      const response = await this.fetchFromAPI<ApiResponse<any>>(`/posts?page=${page}&limit=${perPage}`);
+      const response = await this.fetchFromAPI<ApiResponse<any>>(`/posts?page=${page}&limit=${perPage}${statusParam}`);
       
       const posts = (response.data?.data || response.data || []).map(mapPost);
       
@@ -318,8 +318,6 @@ class ApiService {
       const headers: HeadersInit = {
         'Authorization': `Bearer ${this.authToken}`,
       };
-
-      console.log('[API] Creating post with auth token:', this.authToken.substring(0, 20) + '...');
 
       const response = await fetch(url, {
         method: 'POST',
@@ -393,8 +391,6 @@ class ApiService {
         'Authorization': `Bearer ${this.authToken}`,
       };
 
-      console.log('[API] Updating post', id, 'with auth token:', this.authToken.substring(0, 20) + '...');
-
       const response = await fetch(url, {
         method: 'PATCH',
         body: formData,
@@ -456,6 +452,20 @@ class ApiService {
     }
   }
 
+  // ===== ACTIVITY LOG =====
+
+  async getActivityLogs(page = 1, limit = 30): Promise<{ data: any[]; meta: any }> {
+    const response = await this.fetchFromAPI<any>(`/activity-logs?page=${page}&limit=${limit}`);
+    return {
+      data: response.data || [],
+      meta: response.meta || { total: 0, page, limit, last_page: 1 },
+    };
+  }
+
+  async clearOldLogs(days = 180): Promise<void> {
+    await this.fetchFromAPI(`/activity-logs/clear-old?days=${days}`, { method: 'DELETE' });
+  }
+
   // ===== CABINET =====
 
   // Get ALL members from ALL cabinets (flat list) — for admin use
@@ -515,7 +525,7 @@ class ApiService {
   clearPostsCache(): void {
     const keysToDelete: string[] = [];
     this.cache.forEach((_, key) => {
-      if (key.startsWith('/posts?')) {
+      if (key.startsWith('/posts')) {
         keysToDelete.push(key);
       }
     });

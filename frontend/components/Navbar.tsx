@@ -39,9 +39,11 @@ export const Navbar: React.FC = () => {
           
           {/* Logo Area */}
           <Link to="/" className="flex items-center gap-2 group">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${scrolled ? 'bg-primary-600 text-white' : 'bg-slate-900 dark:bg-white text-white dark:text-black'}`}>
-              B
-            </div>
+            <img
+              src="/assets/images/logo/logo_BEM.png"
+              alt="Logo BEM FST"
+              className="w-8 h-8 object-contain"
+            />
             <span className={`font-bold tracking-tight text-sm ${scrolled ? 'text-slate-900 dark:text-white' : 'text-slate-900 dark:text-white'}`}>
               BEM FST
             </span>

@@ -27,4 +27,19 @@ export const navData = [
     path: '/admin/cabinet',
     icon: icon('ic-user'),
   },
+  {
+    title: 'Periode',
+    path: '/admin/periods',
+    icon: icon('ic-calendar'),
+  },
+  {
+    title: 'Organisasi',
+    path: '/admin/organization',
+    icon: icon('ic-settings'),
+  },
+  {
+    title: 'Activity Log',
+    path: '/admin/activity-log',
+    icon: icon('ic-lock'),
+  },
 ];

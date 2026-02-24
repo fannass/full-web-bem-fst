@@ -36,8 +36,10 @@ model divisions {
   members     members[]
 
   @@index([cabinet_id], map: "divisions_cabinet_id_foreign")
+  @@index([order], map: "divisions_order_idx")
 }
 
+/// Tabel sisa Laravel — tidak digunakan oleh NestJS
 model failed_jobs {
   id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
   uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
@@ -46,8 +48,11 @@ model failed_jobs {
   payload    String   @db.LongText
   exception  String   @db.LongText
   failed_at  DateTime @default(now()) @db.Timestamp(0)
+
+  @@ignore
 }
 
+/// Tabel sisa Laravel — tidak digunakan oleh NestJS
 model media {
   id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   file_name  String    @db.VarChar(255)
@@ -57,6 +62,8 @@ model media {
   alt_text   String?   @db.VarChar(255)
   created_at DateTime? @db.Timestamp(0)
   updated_at DateTime? @db.Timestamp(0)
+
+  @@ignore
 }
 
 model members {
@@ -75,32 +82,38 @@ model members {
   divisions   divisions @relation(fields: [division_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "members_division_id_foreign")
 
   @@index([division_id], map: "members_division_id_foreign")
+  @@index([order], map: "members_order_idx")
 }
 
+/// Tabel migrasi Laravel — tidak relevan untuk NestJS/Prisma
 model migrations {
   id        Int    @id @default(autoincrement()) @db.UnsignedInt
   migration String @db.VarChar(255)
   batch     Int
+
+  @@ignore
 }
 
+/// Tabel Spatie RBAC Laravel — tidak digunakan oleh NestJS
 model model_has_permissions {
-  permission_id BigInt      @db.UnsignedBigInt
-  model_type    String      @db.VarChar(255)
-  model_id      BigInt      @db.UnsignedBigInt
-  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "model_has_permissions_permission_id_foreign")
+  permission_id BigInt @db.UnsignedBigInt
+  model_type    String @db.VarChar(255)
+  model_id      BigInt @db.UnsignedBigInt
 
   @@id([permission_id, model_id, model_type])
   @@index([model_id, model_type], map: "model_has_permissions_model_id_model_type_index")
+  @@ignore
 }
 
+/// Tabel Spatie RBAC Laravel — tidak digunakan oleh NestJS
 model model_has_roles {
   role_id    BigInt @db.UnsignedBigInt
   model_type String @db.VarChar(255)
   model_id   BigInt @db.UnsignedBigInt
-  roles      roles  @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "model_has_roles_role_id_foreign")
 
   @@id([role_id, model_id, model_type])
   @@index([model_id, model_type], map: "model_has_roles_model_id_model_type_index")
+  @@ignore
 }
 
 model organizations {
@@ -116,6 +129,7 @@ model organizations {
   updated_at   DateTime? @db.Timestamp(0)
 }
 
+/// Tabel pages Laravel — tidak digunakan oleh NestJS
 model pages {
   id               BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
   title            String       @db.VarChar(255)
@@ -126,6 +140,8 @@ model pages {
   status           pages_status @default(draft)
   created_at       DateTime?    @db.Timestamp(0)
   updated_at       DateTime?    @db.Timestamp(0)
+
+  @@ignore
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -148,20 +164,23 @@ model periods {
   created_at  DateTime?  @db.Timestamp(0)
   updated_at  DateTime?  @db.Timestamp(0)
   cabinets    cabinets[]
+
+  @@index([is_active], map: "periods_is_active_idx")
 }
 
+/// Tabel Spatie RBAC Laravel — tidak digunakan oleh NestJS
 model permissions {
-  id                    BigInt                  @id @default(autoincrement()) @db.UnsignedBigInt
-  name                  String                  @db.VarChar(255)
-  guard_name            String                  @db.VarChar(255)
-  created_at            DateTime?               @db.Timestamp(0)
-  updated_at            DateTime?               @db.Timestamp(0)
-  model_has_permissions model_has_permissions[]
-  role_has_permissions  role_has_permissions[]
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  guard_name String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
 
   @@unique([name, guard_name], map: "permissions_name_guard_name_unique")
+  @@ignore
 }
 
+/// Tabel Laravel Sanctum — tidak digunakan oleh NestJS (pakai JWT)
 model personal_access_tokens {
   id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   tokenable_type String    @db.VarChar(255)
@@ -175,6 +194,7 @@ model personal_access_tokens {
   updated_at     DateTime? @db.Timestamp(0)
 
   @@index([tokenable_type, tokenable_id], map: "personal_access_tokens_tokenable_type_tokenable_id_index")
+  @@ignore
 }
 
 model posts {
@@ -195,30 +215,36 @@ model posts {
   deleted_at       DateTime?      @db.Timestamp(0)
   created_at       DateTime?      @db.Timestamp(0)
   updated_at       DateTime?      @db.Timestamp(0)
+
+  // Index untuk query paginasi utama: WHERE deleted_at IS NULL AND status = ? ORDER BY created_at DESC
+  @@index([deleted_at, status, created_at(sort: Desc)], map: "posts_list_query_idx")
+  // Index untuk filter kategori
+  @@index([category], map: "posts_category_idx")
 }
 
+/// Tabel Spatie RBAC Laravel — tidak digunakan oleh NestJS
 model role_has_permissions {
-  permission_id BigInt      @db.UnsignedBigInt
-  role_id       BigInt      @db.UnsignedBigInt
-  permissions   permissions @relation(fields: [permission_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "role_has_permissions_permission_id_foreign")
-  roles         roles       @relation(fields: [role_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "role_has_permissions_role_id_foreign")
+  permission_id BigInt @db.UnsignedBigInt
+  role_id       BigInt @db.UnsignedBigInt
 
   @@id([permission_id, role_id])
   @@index([role_id], map: "role_has_permissions_role_id_foreign")
+  @@ignore
 }
 
+/// Tabel Spatie RBAC Laravel — tidak digunakan oleh NestJS
 model roles {
-  id                   BigInt                 @id @default(autoincrement()) @db.UnsignedBigInt
-  name                 String                 @db.VarChar(255)
-  guard_name           String                 @db.VarChar(255)
-  created_at           DateTime?              @db.Timestamp(0)
-  updated_at           DateTime?              @db.Timestamp(0)
-  model_has_roles      model_has_roles[]
-  role_has_permissions role_has_permissions[]
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name       String    @db.VarChar(255)
+  guard_name String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
 
   @@unique([name, guard_name], map: "roles_name_guard_name_unique")
+  @@ignore
 }
 
+/// Tabel sesi Laravel — tidak digunakan oleh NestJS (pakai JWT stateless)
 model sessions {
   id            String  @id @db.VarChar(255)
   user_id       BigInt? @db.UnsignedBigInt
@@ -229,16 +255,36 @@ model sessions {
 
   @@index([last_activity], map: "sessions_last_activity_index")
   @@index([user_id], map: "sessions_user_id_index")
+  @@ignore
 }
 
+/// Tabel settings Laravel — tidak digunakan oleh NestJS (0 rows)
 model settings {
   id    Int    @id @default(autoincrement()) @db.UnsignedInt
   key   String @db.VarChar(255)
   value String @db.Text
 
   @@index([key], map: "settings_key_index")
+  @@ignore
 }
 
+model activity_logs {
+  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  action       String   @db.VarChar(100)
+  entity_type  String?  @db.VarChar(50)
+  entity_id    BigInt?  @db.UnsignedBigInt
+  entity_title String?  @db.VarChar(255)
+  actor        String   @default("admin") @db.VarChar(100)
+  ip_address   String?  @db.VarChar(45)
+  metadata     Json?
+  created_at   DateTime @default(now()) @db.Timestamp(0)
+
+  @@index([action], map: "activity_logs_action_index")
+  @@index([created_at], map: "activity_logs_created_at_index")
+  @@index([entity_type], map: "activity_logs_entity_type_idx")
+}
+
+/// Tabel users Laravel — tidak digunakan oleh NestJS (auth via .env, bukan DB users)
 model users {
   id                 BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
   name               String    @db.VarChar(255)
@@ -249,6 +295,8 @@ model users {
   profile_photo_path String?   @db.VarChar(2048)
   created_at         DateTime? @db.Timestamp(0)
   updated_at         DateTime? @db.Timestamp(0)
+
+  @@ignore
 }
 
 enum pages_status {

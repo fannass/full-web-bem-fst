@@ -23,6 +23,7 @@ import {
   Logout as LogoutIcon,
   Settings as SettingsIcon,
   DateRange as DateRangeIcon,
+  ManageSearch as ManageSearchIcon,
 } from '@mui/icons-material';
 import { useAdminAuth } from '../context/AdminAuthContext';
 
@@ -45,11 +46,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ open = false, onClos
   const isActive = (path: string) => location.pathname === path;
 
   const menuItems = [
-    { label: 'Dashboard', path: '/admin', icon: <DashboardIcon sx={{ fontSize: 20 }} /> },
-    { label: 'Berita & Event', path: '/admin/posts', icon: <NewspaperIcon sx={{ fontSize: 20 }} /> },
-    { label: 'Kabinet', path: '/admin/cabinet', icon: <PeopleIcon sx={{ fontSize: 20 }} /> },
-    { label: 'Periode', path: '/admin/periods', icon: <DateRangeIcon sx={{ fontSize: 20 }} /> },
-    { label: 'Organisasi', path: '/admin/organization', icon: <SettingsIcon sx={{ fontSize: 20 }} /> },
+    { label: 'Dashboard',     path: '/admin',               icon: <DashboardIcon sx={{ fontSize: 20 }} /> },
+    { label: 'Berita & Event',path: '/admin/posts',         icon: <NewspaperIcon sx={{ fontSize: 20 }} /> },
+    { label: 'Kabinet',       path: '/admin/cabinet',       icon: <PeopleIcon sx={{ fontSize: 20 }} /> },
+    { label: 'Periode',       path: '/admin/periods',       icon: <DateRangeIcon sx={{ fontSize: 20 }} /> },
+    { label: 'Organisasi',    path: '/admin/organization',  icon: <SettingsIcon sx={{ fontSize: 20 }} /> },
+    { label: '──────────', path: '', icon: null, divider: true },
+    { label: 'Activity Log',  path: '/admin/activity-log',  icon: <ManageSearchIcon sx={{ fontSize: 20 }} />, badge: true },
   ];
 
   const sidebarContent = (
@@ -99,7 +102,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ open = false, onClos
 
       {/* Navigation Menu */}
       <List sx={{ flex: 1, py: 2, px: 0 }}>
-        {menuItems.map((item, idx) => (
+        {menuItems.map((item, idx) => {
+          if ((item as any).divider) {
+            return <Divider key={`divider-${idx}`} sx={{ my: 1, mx: 2 }} />;
+          }
+          return (
           <ListItem key={item.path} disablePadding sx={{ mb: 0.5, px: 1 }}>
             <ListItemButton
               component={RouterLink}
@@ -141,7 +148,8 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ open = false, onClos
               />
             </ListItemButton>
           </ListItem>
-        ))}
+          );
+        })}
       </List>
 
       {/* Divider */}

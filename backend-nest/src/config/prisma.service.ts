@@ -75,6 +75,10 @@ export class PrismaService {
     return this.prisma.periods;
   }
 
+  get activity_logs() {
+    return this.prisma.activity_logs;
+  }
+
   // Generic query method
   async query(command: string) {
     return this.prisma.$queryRawUnsafe(command);

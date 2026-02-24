@@ -15,16 +15,22 @@ import {
   HttpStatus,
   BadRequestException,
   Response,
+  Req,
 } from '@nestjs/common';
+import { Request } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
+import { ActivityLogService } from '@/modules/activity-log/activity-log.service';
 
 @Controller('api/v1/posts')
 export class PostsController {
-  constructor(private readonly postsService: PostsService) {}
+  constructor(
+    private readonly postsService: PostsService,
+    private readonly activityLogService: ActivityLogService,
+  ) {}
 
   // Create post (admin only)
   @Post()
@@ -32,6 +38,7 @@ export class PostsController {
   @UseGuards(JwtGuard)
   @UseInterceptors(FileInterceptor('featured_image'))
   async create(
+    @Req() req: Request,
     @Body() createPostDto: CreatePostDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
@@ -41,6 +48,14 @@ export class PostsController {
       }
 
       const post = await this.postsService.create(createPostDto, file);
+      await this.activityLogService.log({
+        action: 'post.created',
+        entityType: 'post',
+        entityId: Number(post.id),
+        entityTitle: post.title,
+        ipAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip,
+        metadata: { category: post.category, status: post.status },
+      });
       return {
         success: true,
         message: 'Post berhasil dibuat',
@@ -51,11 +66,12 @@ export class PostsController {
     }
   }
 
-  // Get all posts (public)
+  // Get all posts (public) — add ?status=published to filter by status
   @Get()
   async findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('status') status?: string,
   ) {
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 6;
@@ -64,7 +80,7 @@ export class PostsController {
       throw new BadRequestException('Page harus lebih dari 0');
     }
     
-    const result = await this.postsService.findAll(pageNum, limitNum);
+    const result = await this.postsService.findAll(pageNum, limitNum, status);
     return {
       success: true,
       data: result.data,
@@ -111,12 +127,22 @@ export class PostsController {
   @UseGuards(JwtGuard)
   @UseInterceptors(FileInterceptor('featured_image'))
   async update(
+    @Req() req: Request,
     @Param('id', ParseIntPipe) id: number,
     @Body() updatePostDto: UpdatePostDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     try {
       const post = await this.postsService.update(id, updatePostDto, file);
+      const action = updatePostDto.status === 'published' ? 'post.published' : 'post.updated';
+      await this.activityLogService.log({
+        action,
+        entityType: 'post',
+        entityId: id,
+        entityTitle: post.title,
+        ipAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip,
+        metadata: { category: post.category, status: post.status },
+      });
       return {
         success: true,
         message: 'Post berhasil diperbarui',
@@ -130,8 +156,17 @@ export class PostsController {
   // Delete post (admin only)
   @Delete(':id')
   @UseGuards(JwtGuard)
-  async remove(@Param('id', ParseIntPipe) id: number) {
+  async remove(@Req() req: Request, @Param('id', ParseIntPipe) id: number) {
+    const post = await this.postsService.findOne(id).catch(() => null);
     const result = await this.postsService.remove(id);
+    await this.activityLogService.log({
+      action: 'post.deleted',
+      entityType: 'post',
+      entityId: id,
+      entityTitle: post?.title ?? `Post #${id}`,
+      ipAddress: (req.headers['x-forwarded-for'] as string)?.split(',')[0]?.trim() || req.ip,
+      metadata: { id },
+    });
     return {
       success: true,
       message: result.message,

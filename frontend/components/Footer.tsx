@@ -13,8 +13,15 @@ export const Footer: React.FC<FooterProps> = ({ organization }) => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-16">
           
           <div className="md:col-span-2">
-            <Link to="/" className="inline-block font-bold text-2xl tracking-tighter text-slate-900 dark:text-white mb-6">
-              BEM FST UNISA.
+            <Link to="/" className="inline-flex items-center gap-3 mb-6 group">
+              <img
+                src="/assets/images/logo/logo_BEM.png"
+                alt="Logo BEM FST"
+                className="w-12 h-12 object-contain"
+              />
+              <span className="font-bold text-2xl tracking-tighter text-slate-900 dark:text-white">
+                BEM FST UNISA.
+              </span>
             </Link>
             <p className="text-slate-500 dark:text-slate-400 text-lg leading-relaxed max-w-sm mb-8">
               Mewujudkan mahasiswa yang inovatif, progresif, dan berlandaskan nilai Islam berkemajuan.
@@ -37,9 +44,21 @@ export const Footer: React.FC<FooterProps> = ({ organization }) => {
           <div>
              <h4 className="font-bold text-slate-900 dark:text-white mb-6">Connect</h4>
              <ul className="space-y-4">
-                <li><a href="#" className="text-slate-500 dark:text-slate-400 hover:text-primary-600 transition-colors">Instagram</a></li>
-                <li><a href="#" className="text-slate-500 dark:text-slate-400 hover:text-red-600 transition-colors">Youtube</a></li>
-                <li><a href="#" className="text-slate-500 dark:text-slate-400 hover:text-blue-400 transition-colors">Twitter</a></li>
+                {organization?.socials?.instagram && (
+                  <li><a href={`https://instagram.com/${organization.socials.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-pink-600 transition-colors">Instagram</a></li>
+                )}
+                {organization?.socials?.youtube && (
+                  <li><a href={organization.socials.youtube} target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-red-600 transition-colors">YouTube</a></li>
+                )}
+                {organization?.socials?.twitter && (
+                  <li><a href={`https://twitter.com/${organization.socials.twitter.replace('@','')}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors">Twitter / X</a></li>
+                )}
+                {organization?.socials?.facebook && (
+                  <li><a href={`https://facebook.com/${organization.socials.facebook.replace('@','')}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 transition-colors">Facebook</a></li>
+                )}
+                {!organization?.socials?.instagram && !organization?.socials?.youtube && !organization?.socials?.twitter && !organization?.socials?.facebook && (
+                  <li><span className="text-slate-400 text-sm italic">Belum dikonfigurasi</span></li>
+                )}
              </ul>
           </div>
           

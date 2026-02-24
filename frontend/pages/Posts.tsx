@@ -7,9 +7,10 @@ import { useSEO } from '../utils/seo';
 
 export const Posts: React.FC = () => {
   useSEO({ 
-    title: "Berita & Event", 
-    description: "Arsip berita dan kegiatan mahasiswa FST UNISA. Temukan informasi terbaru tentang kegiatan dan event dari BEM FST UNISA.",
+    title: 'Berita & Event', 
+    description: 'Arsip berita dan kegiatan mahasiswa FST UNISA. Temukan informasi terbaru tentang kegiatan dan event dari BEM FST UNISA.',
     type: 'website',
+    keywords: 'berita mahasiswa, event kampus, kegiatan BEM, FST UNISA, arsip berita',
     url: typeof window !== 'undefined' ? window.location.href : '',
   });
 

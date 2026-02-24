@@ -1,83 +1,76 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../services/api';
-import { CabinetMember, OrganizationProfile } from '../types';
+import { CabinetMember } from '../types';
 import { Skeleton } from '../components/Skeleton';
 import { useSEO } from '../utils/seo';
+import { ArrowRight } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext';
 
-// Preferred order for known departments (others appended after)
-const DEPT_ORDER = ["Dagri", "Deplu", "Kastrad", "Porsa", "Kominfo", "Kasosma", "KWU"];
+// --- COMPONENTS ---
 
-// Elegant Org Card
-interface OrgCardProps {
-  member: CabinetMember;
-  variant?: 'large' | 'medium' | 'small';
-}
+// Minimalist Member Card
+const MemberCard: React.FC<{ member: CabinetMember; variant?: 'default' | 'compact' }> = ({ member, variant = 'default' }) => {
+  const initials = member.name
+    .split(' ')
+    .map(n => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
-const OrgCard: React.FC<OrgCardProps> = ({ member, variant = 'medium' }) => {
-  const sizeClasses = {
-    large: "w-64",
-    medium: "w-48",
-    small: "w-40" 
-  };
-
-  const imgClasses = {
-    large: "h-64",
-    medium: "h-48",
-    small: "h-40"
-  };
+  const isCompact = variant === 'compact';
 
   return (
-    <div className={`group flex flex-col items-center bg-white dark:bg-dark-surface rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.1)] hover:shadow-xl dark:shadow-none border border-slate-100 dark:border-white/10 overflow-hidden transition-all duration-300 hover:-translate-y-2 z-10 ${sizeClasses[variant]}`}>
-      <div className={`w-full ${imgClasses[variant]} overflow-hidden bg-slate-50 dark:bg-white/5 relative`}>
-        <img 
-          src={member.photo_url} 
-          alt={member.name} 
-          className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+    <div className="flex items-center gap-4 p-4 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 transition-colors duration-200 group">
+      {/* Avatar */}
+      <div className={`flex-shrink-0 rounded-full flex items-center justify-center font-bold text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/20 ${isCompact ? 'w-10 h-10 text-xs' : 'w-12 h-12 text-sm'}`}>
+        {initials}
       </div>
-      <div className="p-4 text-center w-full bg-white dark:bg-dark-surface flex-grow flex flex-col justify-center relative border-t border-slate-50 dark:border-white/5">
-        <h3 className={`font-bold text-slate-900 dark:text-white leading-tight ${variant === 'large' ? 'text-lg' : 'text-xs'}`}>
-            {member.name}
-        </h3>
-        <p className={`text-primary-600 dark:text-primary-400 font-bold mt-1 uppercase tracking-wider ${variant === 'large' ? 'text-xs' : 'text-[9px]'}`}>
-            {member.position}
+
+      {/* Info */}
+      <div className="min-w-0">
+        <h4 className={`font-medium text-slate-900 dark:text-white truncate ${isCompact ? 'text-sm' : 'text-base'}`}>
+          {member.name}
+        </h4>
+        <p className="text-slate-500 dark:text-slate-400 text-xs truncate">
+          {member.position}
         </p>
-        {member.prodi && (
-           <p className="text-[9px] text-slate-400 dark:text-slate-500 mt-1 truncate">{member.prodi}</p>
+        {member.bio && (
+          <p className="text-slate-400 dark:text-slate-600 text-[10px] uppercase tracking-wider mt-0.5 truncate">
+            {member.bio}
+          </p>
         )}
       </div>
     </div>
   );
 };
 
-// Connector Lines Components
-const VerticalLine = ({ height = "h-8" }: { height?: string }) => (
-  <div className={`w-px bg-slate-200 dark:bg-white/10 mx-auto ${height}`}></div>
-);
+// Cabinet Logo Component
+const CabinetLogo: React.FC<{ className?: string }> = ({ className = "w-12 h-12" }) => {
+  const { theme } = useTheme();
+  const src = theme === 'dark'
+    ? '/assets/images/logo/logo_kabinet_light.png'
+    : '/assets/images/logo/logo_kabinet_dark.png';
+  return (
+    <img
+      src={src}
+      alt="Logo Kabinet Loyalist Spectra"
+      className={`object-contain ${className}`}
+    />
+  );
+};
 
 export const Cabinet: React.FC = () => {
-  useSEO({ 
-    title: "Struktur Organisasi", 
-    description: "Lihat struktur dan susunan pengurus BEM FST UNISA. Ketahui lebih dekat sosok-sosok yang memimpin organisasi mahasiswa kami.",
-    type: 'website',
-    url: typeof window !== 'undefined' ? window.location.href : '',
-  });
+  useSEO({ title: "Kabinet Loyalist Spectra", description: "Struktur kepengurusan BEM FST UNISA Periode 2025/2026." });
 
   const [members, setMembers] = useState<CabinetMember[]>([]);
-  const [org, setOrg] = useState<OrganizationProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCabinet = async () => {
       try {
-        const [cabinetData, orgData] = await Promise.all([
-             api.getCabinet(true), // always skip cache – data harus fresh
-             api.getOrganization()
-        ]);
-        setMembers(cabinetData);
-        setOrg(orgData);
+        const data = await api.getCabinet();
+        setMembers(data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -87,132 +80,165 @@ export const Cabinet: React.FC = () => {
     fetchCabinet();
   }, []);
 
-  const governor = members.find(m => m.position.includes("Gubernur") && !m.position.includes("Wakil"));
-  const viceGovernor = members.find(m => m.position.includes("Wakil Gubernur"));
-  const bph = members.filter(m => m.department === "BPH").sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  
-  const departments = members.reduce((acc, member) => {
-    if (member.department !== "Pimpinan" && member.department !== "BPH") {
-      if (!acc[member.department]) acc[member.department] = [];
-      acc[member.department].push(member);
-    }
-    return acc;
-  }, {} as Record<string, CabinetMember[]>);
+  // Filter Data
+  const topManagement = members.filter(m =>
+    m.department === "Pimpinan" || m.department === "BPH"
+  );
 
-  // All dept names: known order first, then any extra divisions not in DEPT_ORDER
-  const allDeptNames = [
-    ...DEPT_ORDER.filter(d => departments[d]),
-    ...Object.keys(departments).filter(d => !DEPT_ORDER.includes(d)),
+  const leaders = topManagement.filter(m => m.department === "Pimpinan").sort((a, b) => {
+    if (a.position.includes("Gubernur") && !a.position.includes("Wakil")) return -1;
+    return 1;
+  });
+
+  const bph = topManagement.filter(m => m.department === "BPH").sort((a, b) => {
+    const rank = (p: string) => {
+      if (p.includes("Sekretaris Umum")) return 1;
+      if (p.includes("Sekretaris")) return 2;
+      if (p.includes("Bendahara Umum")) return 3;
+      if (p.includes("Bendahara")) return 4;
+      return 5;
+    };
+    return rank(a.position) - rank(b.position);
+  });
+
+  const departments = [
+    "Dagri", "Deplu", "Kastrad", "Porsa", "Kominfo", "Kasosma", "KWU"
   ];
 
-  const sortDepartmentMembers = (deptMembers: CabinetMember[]) => {
-      const getPriority = (position: string) => {
-          const p = position.toLowerCase();
-          if (p.includes('kadep') || p.includes('kepala') || p.includes('ketua')) return 0;
-          if (p.includes('sekdep') || p.includes('sekretaris')) return 1;
-          return 2;
-      };
-      return [...deptMembers].sort((a, b) => {
-          const priorityDiff = getPriority(a.position) - getPriority(b.position);
-          if (priorityDiff !== 0) return priorityDiff;
-          return (a.order ?? 0) - (b.order ?? 0);
-      });
-  };
+  const getDeptMembers = (deptName: string) => members.filter(m => m.department === deptName);
 
   if (loading) return (
-    <div className="pt-40 pb-20 container mx-auto px-6 text-center">
-        <Skeleton className="w-64 h-80 mx-auto mb-8" />
-        <Skeleton className="w-full h-96" />
+    <div className="pt-32 container mx-auto px-6 max-w-5xl">
+      <Skeleton className="w-48 h-8 mb-4" />
+      <Skeleton className="w-full max-w-lg h-4 mb-12" />
+      <div className="grid md:grid-cols-2 gap-6">
+        <Skeleton className="h-24 rounded-xl" />
+        <Skeleton className="h-24 rounded-xl" />
+      </div>
     </div>
   );
 
   return (
-    <div className="pt-32 pb-24 bg-slate-50 dark:bg-black min-h-screen">
-      <div className="container mx-auto px-4 overflow-x-auto">
-        
-        <div className="text-center mb-20 sticky left-0 right-0">
-           <span className="inline-block py-1 px-3 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">
-              Hierarki Organisasi
-           </span>
-           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight">{org?.cabinet_name || 'Kabinet Loyalist Spectra'}</h1>
+    <div className="bg-white dark:bg-dark-bg min-h-screen transition-colors duration-300">
+
+      {/* 1. HERO SECTION (Minimal) */}
+      <section className="pt-32 pb-16 px-6 border-b border-slate-100 dark:border-white/5 relative overflow-hidden">
+        {/* Watermark Background */}
+        <div className="absolute -right-20 top-10 opacity-[0.03] dark:opacity-[0.05] pointer-events-none blur-sm">
+          <CabinetLogo className="w-96 h-96" />
         </div>
 
-        <div className="min-w-max mx-auto flex flex-col items-center px-8">
-            
-            {/* LEVEL 1: TOP LEADERS */}
-            <div className="flex justify-center gap-12 relative z-20">
-               {governor && <OrgCard member={governor} variant="large" />}
-               {viceGovernor && <OrgCard member={viceGovernor} variant="large" />}
-               
-               {/* Visual Connector between Gov and Wagub */}
-               <div className="absolute top-1/2 left-[calc(50%-2rem)] right-[calc(50%-2rem)] h-px bg-slate-200 dark:bg-white/10 -z-10"></div>
+        <div className="container mx-auto max-w-5xl relative z-10">
+          <span className="text-primary-600 dark:text-primary-400 font-mono text-xs uppercase tracking-widest mb-3 block">
+            Periode 2025/2026
+          </span>
+          <div className="flex items-center gap-4 mb-6">
+            <div className="p-2 bg-primary-50 dark:bg-primary-900/20 rounded-xl">
+              <CabinetLogo className="w-8 h-8 md:w-10 md:h-10" />
             </div>
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Kabinet Loyalist Spectra
+            </h1>
+          </div>
+          <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl leading-relaxed">
+            Kabinet Loyalist Spectra hadir sebagai ruang kolaborasi mahasiswa untuk bertumbuh, berkontribusi, dan membangun arah gerak organisasi yang berkelanjutan.
+          </p>
+        </div>
+      </section>
 
-            <VerticalLine height="h-16" />
+      {/* 2. KEPALA KABINET */}
+      <section className="pt-16 pb-8 px-6">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-8">
+            Kepala Kabinet
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {leaders.map(member => (
+              <div key={member.id} className="bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-100 dark:border-white/5 shadow-sm">
+                <MemberCard member={member} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            {/* LEVEL 2: BPH */}
-            <div className="relative pt-10 px-12 border-t border-slate-200 dark:border-white/10 bg-white/40 dark:bg-white/5 backdrop-blur-sm rounded-3xl border border-slate-100 dark:border-white/5 z-10 shadow-sm">
-                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 bg-slate-50 dark:bg-black text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    Badan Pengurus Harian
-                 </div>
-                 
-                 <div className="flex gap-6 justify-center pb-8">
-                    {bph.map(member => (
-                        <OrgCard key={member.id} member={member} variant="medium" />
-                    ))}
-                 </div>
-            </div>
+      {/* 3. BADAN PENGURUS HARIAN */}
+      <section className="pt-8 pb-16 px-6">
+        <div className="container mx-auto max-w-5xl">
+          <h2 className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-8">
+            Badan Pengurus Harian
+          </h2>
+          <div className="grid md:grid-cols-2 gap-4">
+            {bph.map(member => (
+              <div key={member.id} className="bg-white dark:bg-dark-surface rounded-2xl border border-slate-100 dark:border-white/5">
+                <MemberCard member={member} />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-            <VerticalLine height="h-20" />
+      {/* 4. DEPARTEMEN LIST */}
+      <section className="pb-24 px-6 space-y-16">
+        <div className="container mx-auto max-w-5xl">
+          {departments.map((dept) => {
+            const deptMembers = getDeptMembers(dept);
+            if (deptMembers.length === 0) return null;
 
-            {/* LEVEL 3: DEPARTMENTS (Single Row) */}
-            <div className="relative w-full flex justify-center">
-                <div className="flex items-start gap-10 pt-10">
-                    {allDeptNames.map((deptName, idx) => {
-                        const deptMembers = departments[deptName] || [];
-                        if (deptMembers.length === 0) return null;
+            const sortedMembers = [...deptMembers].sort((a, b) => {
+              const rank = (p: string) => {
+                if (p.toLowerCase().includes('kepala')) return 1;
+                if (p.toLowerCase().includes('sekretaris')) return 2;
+                return 3;
+              };
+              return rank(a.position) - rank(b.position);
+            });
 
-                        const isFirst = idx === 0;
-                        const isLast = idx === allDeptNames.length - 1;
-
-                        return (
-                            <div key={deptName} className="flex flex-col items-center relative">
-                                
-                                {/* CONNECTOR LINES LOGIC */}
-                                <div className="absolute -top-10 w-full h-10">
-                                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-full bg-slate-200 dark:bg-white/10"></div>
-                                    {!isLast && (
-                                        <div className="absolute top-0 right-0 w-1/2 h-px bg-slate-200 dark:bg-white/10 translate-x-[20px]"></div> 
-                                    )}
-                                    {!isFirst && (
-                                        <div className="absolute top-0 left-0 w-1/2 h-px bg-slate-200 dark:bg-white/10 -translate-x-[20px]"></div>
-                                    )}
-                                    <div className="absolute top-0 left-0 w-full h-px bg-slate-200 dark:bg-white/10"></div>
-                                </div>
-
-                                {/* Department Label */}
-                                <div className="mb-8 bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white px-5 py-1.5 rounded-full shadow-sm z-20">
-                                    <span className="text-xs font-bold uppercase tracking-widest whitespace-nowrap">{deptName}</span>
-                                </div>
-
-                                <div className="flex flex-col gap-4 w-full items-center">
-                                    {sortDepartmentMembers(deptMembers).map((member, mIdx) => (
-                                        <div key={member.id} className="relative flex flex-col items-center">
-                                            <OrgCard member={member} variant="small" />
-                                            {mIdx < deptMembers.length - 1 && (
-                                                <div className="h-4 w-px bg-slate-200 dark:bg-white/10"></div>
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        );
-                    })}
+            return (
+              <div key={dept}>
+                {/* Minimal Header */}
+                <div className="flex items-center gap-4 mb-6">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                    Departemen {dept}
+                  </h3>
+                  <div className="h-px flex-grow bg-slate-100 dark:bg-white/10"></div>
+                  <span className="text-xs font-mono text-slate-400">
+                    {deptMembers.length} Pengurus
+                  </span>
                 </div>
-            </div>
 
+                {/* Grid */}
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-2">
+                  {sortedMembers.map(member => (
+                    <MemberCard key={member.id} member={member} variant="compact" />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      </section>
+
+      {/* 5. CTA (Minimal) */}
+      <section className="py-16 px-6 border-t border-slate-100 dark:border-white/5">
+        <div className="container mx-auto max-w-5xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-1">
+              Tentang BEM FST
+            </h2>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">
+              Pelajari lebih lanjut tentang visi dan misi kami.
+            </p>
+          </div>
+          <Link
+            to="/about"
+            className="group inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors"
+          >
+            Lihat Profil <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </div>
+      </section>
+
     </div>
   );
 };
