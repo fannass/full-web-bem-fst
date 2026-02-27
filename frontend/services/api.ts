@@ -94,7 +94,7 @@ const mapOrganization = (data: any, cabinet?: any): OrganizationProfile => {
     logo_url: data.logo_url || getAvatar("BEM FST"),
     cabinet_name: cabinet?.name || 'BEM FST UNISA',
     tagline: cabinet?.tagline || data.description,
-    period_years: cabinet?.period ? `${cabinet.period.year_start}/${cabinet.period.year_end}` : '2025/2026',
+    period_years: cabinet?.periods ? `${cabinet.periods.year_start}/${cabinet.periods.year_end}` : (cabinet?.period ? `${cabinet.period.year_start}/${cabinet.period.year_end}` : '2025/2026'),
     socials: data.social_media || {}
   };
 };
@@ -231,10 +231,10 @@ class ApiService {
     try {
       const [orgRes, cabinetRes] = await Promise.all([
         this.fetchFromAPI<ApiResponse<any>>('/organization'),
-        this.fetchFromAPI<ApiResponse<any>>('/cabinet').catch(() => ({ success: false, data: null }))
+        this.fetchFromAPI<ApiResponse<any>>('/cabinet/current').catch(() => ({ success: false, data: null }))
       ]);
 
-      const result = mapOrganization(orgRes.data, cabinetRes.data?.[0]);
+      const result = mapOrganization(orgRes.data, cabinetRes.data);
       this.cache.set(cacheKey, { data: result, timestamp: Date.now() });
       return result;
     } catch (error) {
@@ -534,13 +534,16 @@ class ApiService {
 
   // ===== DIVISION CRUD =====
 
-  async getCabinets(): Promise<{ id: number; name: string; period_id?: number; tagline?: string }[]> {
+  async getCabinets(): Promise<{ id: number; name: string; period_id?: number; tagline?: string; vision?: string; mission?: string; description?: string }[]> {
     const response = await this.fetchFromAPI<ApiResponse<any[]>>('/cabinet');
     return (response.data || []).map((c: any) => ({
       id: Number(c.id),
       name: c.name,
       period_id: c.period_id ? Number(c.period_id) : undefined,
       tagline: c.tagline || '',
+      vision: c.vision || '',
+      mission: c.mission || '',
+      description: c.description || '',
     }));
   }
 

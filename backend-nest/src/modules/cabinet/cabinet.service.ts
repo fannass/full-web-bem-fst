@@ -8,19 +8,43 @@ export class CabinetService {
   constructor(private prisma: PrismaService) {}
 
   async getCurrentCabinet() {
-    // Get the latest cabinet with divisions and members
-    const cabinet = await this.prisma.cabinets.findFirst({
-      orderBy: {
-        created_at: 'desc',
+    // Get cabinet linked to the active period first, fallback to latest
+    let cabinet = await this.prisma.cabinets.findFirst({
+      where: {
+        periods: {
+          is_active: true,
+        },
       },
       include: {
+        periods: true,
         divisions: {
+          orderBy: { order: 'asc' },
           include: {
-            members: true,
+            members: {
+              orderBy: { order: 'asc' },
+            },
           },
         },
       },
     });
+
+    if (!cabinet) {
+      // Fallback: latest cabinet
+      cabinet = await this.prisma.cabinets.findFirst({
+        orderBy: { created_at: 'desc' },
+        include: {
+          periods: true,
+          divisions: {
+            orderBy: { order: 'asc' },
+            include: {
+              members: {
+                orderBy: { order: 'asc' },
+              },
+            },
+          },
+        },
+      });
+    }
 
     if (!cabinet) {
       throw new NotFoundException('Kabinet tidak ditemukan');

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { PostCard } from '../components/PostCard';
 import { PostCardSkeleton } from '../components/Skeleton';
@@ -53,6 +53,38 @@ export const Home: React.FC = () => {
 
   const marqueeWords = ["LOYALIST", "SPECTRA", "INKLUSIF", "KADERISASI", "INOVASI", "INTEGRITAS"];
 
+  // Slideshow
+  const slides = [
+    { src: '/assets/images/slideshow/fotoall.png',       label: org?.cabinet_name || 'Kabinet Loyalist Spectra', sub: 'Semua Anggota', pan: true },
+    { src: '/assets/images/slideshow/bph_gub_wagub.JPG', label: 'Pimpinan & BPH',   sub: '', pan: false },
+    { src: '/assets/images/slideshow/dagri.JPG',         label: 'DAGRI',       sub: '', pan: false },
+    { src: '/assets/images/slideshow/deplu.JPG',         label: 'DEPLU',       sub: '', pan: false },
+    { src: '/assets/images/slideshow/kasosma.JPG',       label: 'KASOSMA',     sub: '', pan: false },
+    { src: '/assets/images/slideshow/kastrad.JPG',       label: 'KASTRAD',     sub: '', pan: false },
+    { src: '/assets/images/slideshow/kominfo.JPG',       label: 'KOMINFO',     sub: '', pan: false },
+    { src: '/assets/images/slideshow/kwu.JPG',           label: 'KWU',         sub: '', pan: false },
+    { src: '/assets/images/slideshow/porsa.JPG',         label: 'PORSA',       sub: '', pan: false },
+  ];
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [fadeIn, setFadeIn] = useState(true);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  pausedRef.current = paused;
+
+  useEffect(() => {
+    const duration = slides[slideIdx]?.pan ? 6000 : 4000;
+    const timer = setTimeout(() => {
+      if (!pausedRef.current) {
+        setFadeIn(false);
+        setTimeout(() => {
+          setSlideIdx(i => (i + 1) % slides.length);
+          setFadeIn(true);
+        }, 400);
+      }
+    }, duration);
+    return () => clearTimeout(timer);
+  }, [slideIdx, paused]);
+
   return (
     <div className="min-h-screen">
       
@@ -90,16 +122,60 @@ export const Home: React.FC = () => {
               <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-gradient-to-tr from-primary-200 to-indigo-200 dark:from-primary-900/40 dark:to-indigo-900/40 rounded-full blur-3xl opacity-50 group-hover:scale-110 transition-transform duration-1000"></div>
             </div>
 
-            {/* Box 2: Visual/Image (Top Right) */}
-            <div className="md:col-span-1 bg-slate-900 dark:bg-black rounded-3xl relative overflow-hidden group border border-slate-200 dark:border-white/5 min-h-[250px]">
-               <img 
-                 src="https://images.unsplash.com/photo-1531482615713-2afd69097998?q=80&w=2070&auto=format&fit=crop" 
-                 alt="Students" 
-                 className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700"
-               />
-               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-6">
-                 <h3 className="text-white font-bold text-xl leading-tight">Membangun Sinergi</h3>
-               </div>
+            {/* Box 2: Slideshow */}
+            <div
+              className="md:col-span-1 bg-slate-900 dark:bg-black rounded-3xl relative overflow-hidden border border-slate-200 dark:border-white/5 min-h-[250px] cursor-pointer"
+              onMouseEnter={() => setPaused(true)}
+              onMouseLeave={() => setPaused(false)}
+            >
+              {/* Pan keyframes injected inline */}
+              <style>{`
+                @keyframes panSlide {
+                  from { object-position: right center; }
+                  to   { object-position: left center; }
+                }
+                .slide-pan { animation: panSlide 6s linear forwards; }
+                .slide-fade { transition: opacity 0.4s ease; }
+              `}</style>
+
+              <img
+                key={slideIdx}
+                src={slides[slideIdx].src}
+                alt={slides[slideIdx].label}
+                className={`absolute inset-0 w-full h-full object-cover opacity-70 slide-fade ${
+                  slides[slideIdx].pan ? 'slide-pan' : 'object-top'
+                }`}
+                style={{ opacity: fadeIn ? 0.7 : 0 }}
+              />
+
+              {/* Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent flex flex-col justify-end p-6">
+                <div
+                  className="slide-fade"
+                  style={{ opacity: fadeIn ? 1 : 0 }}
+                >
+                  <p className="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">
+                    {org?.period_years || '2025/2026'}
+                  </p>
+                  <h3 className="text-white font-bold text-xl leading-tight">{slides[slideIdx].label}</h3>
+                  {slides[slideIdx].sub && (
+                    <p className="text-white/70 text-sm mt-1">{slides[slideIdx].sub}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Dot indicators */}
+              <div className="absolute bottom-4 right-4 flex gap-1">
+                {slides.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setFadeIn(false); setTimeout(() => { setSlideIdx(i); setFadeIn(true); }, 400); }}
+                    className={`w-1.5 h-1.5 rounded-full transition-all ${
+                      i === slideIdx ? 'bg-white w-4' : 'bg-white/40'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
 
             {/* Box 3: Stats/Data (Bottom Right) */}

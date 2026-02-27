@@ -4,7 +4,7 @@ import { CreatePostDto, PostStatus, PostCategory } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import * as fs from 'fs';
 import * as path from 'path';
-import { fileTypeFromBuffer } from 'file-type';
+import { fromBuffer as fileTypeFromBuffer } from 'file-type';
 
 @Injectable()
 export class PostsService {

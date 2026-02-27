@@ -238,6 +238,7 @@ export const AdminCabinet: React.FC = () => {
         showAlert('success', 'Kabinet berhasil ditambahkan');
       }
       api.clearCache('/cabinet');
+      api.clearCache('/organization');
       setCabinetDialog({ open: false });
       await loadAll();
     } catch (e: any) {
@@ -253,6 +254,7 @@ export const AdminCabinet: React.FC = () => {
       setSaving(true);
       await api.deleteCabinet(Number(deleteCabinetDialog.item.id));
       api.clearCache('/cabinet');
+      api.clearCache('/organization');
       showAlert('success', 'Kabinet berhasil dihapus');
       setDeleteCabinetDialog({ open: false });
       await loadAll();
