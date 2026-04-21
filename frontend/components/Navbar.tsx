@@ -15,6 +15,7 @@ export const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const logoSrc = `${import.meta.env.BASE_URL}assets/images/logo/logo_BEM.png`;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,7 +41,7 @@ export const Navbar: React.FC = () => {
           {/* Logo Area */}
           <Link to="/" className="flex items-center gap-2 group">
             <img
-              src="/assets/images/logo/logo_BEM.png"
+              src={logoSrc}
               alt="Logo BEM FST"
               className="w-8 h-8 object-contain"
             />

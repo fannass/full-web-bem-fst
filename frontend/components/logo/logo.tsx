@@ -24,6 +24,8 @@ export function Logo({
   isSingle = true,
   ...other
 }: LogoProps) {
+  const logoSrc = `${import.meta.env.BASE_URL}assets/images/logo/logo_BEM.png`;
+
   return (
     <LogoRoot
       component={RouterLink}
@@ -45,7 +47,7 @@ export function Logo({
       {...other}
     >
       <img
-        src="/assets/images/logo/logo_BEM.png"
+        src={logoSrc}
         alt="BEM FST UNISA"
         style={{ width: 36, height: 36, objectFit: 'contain', flexShrink: 0 }}
       />

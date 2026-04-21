@@ -8,6 +8,7 @@ import { useAdminAuth } from '../../context/AdminAuthContext';
 export const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAdminAuth();
+  const logoSrc = `${import.meta.env.BASE_URL}assets/images/logo/logo_BEM.png`;
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -65,7 +66,7 @@ export const AdminLogin: React.FC = () => {
           {/* Logo + branding */}
           <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <img
-              src="/assets/images/logo/logo_BEM.png"
+              src={logoSrc}
               alt="BEM FST UNISA"
               style={{ width: 72, height: 72, objectFit: 'contain', marginBottom: 14 }}
             />

@@ -7,6 +7,8 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ organization }) => {
+  const logoSrc = `${import.meta.env.BASE_URL}assets/images/logo/logo_BEM.png`;
+
   return (
     <footer className="bg-white dark:bg-black border-t border-slate-200 dark:border-white/10 pt-20 pb-10">
       <div className="container mx-auto px-6 max-w-6xl">
@@ -15,7 +17,7 @@ export const Footer: React.FC<FooterProps> = ({ organization }) => {
           <div className="md:col-span-2">
             <Link to="/" className="inline-flex items-center gap-3 mb-6 group">
               <img
-                src="/assets/images/logo/logo_BEM.png"
+                src={logoSrc}
                 alt="Logo BEM FST"
                 className="w-12 h-12 object-contain"
               />
