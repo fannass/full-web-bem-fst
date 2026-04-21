@@ -52,18 +52,19 @@ export const Home: React.FC = () => {
   const { main, sub } = getCabinetNameParts();
 
   const marqueeWords = ["LOYALIST", "SPECTRA", "INKLUSIF", "KADERISASI", "INOVASI", "INTEGRITAS"];
+  const asset = (relativePath: string) => `${import.meta.env.BASE_URL}${relativePath.replace(/^\/+/, '')}`;
 
   // Slideshow
   const slides = [
-    { src: '/assets/images/slideshow/fotoall.png',       label: org?.cabinet_name || 'Kabinet Loyalist Spectra', sub: 'Semua Anggota', pan: true },
-    { src: '/assets/images/slideshow/bph_gub_wagub.JPG', label: 'Pimpinan & BPH',   sub: '', pan: false },
-    { src: '/assets/images/slideshow/dagri.JPG',         label: 'DAGRI',       sub: '', pan: false },
-    { src: '/assets/images/slideshow/deplu.JPG',         label: 'DEPLU',       sub: '', pan: false },
-    { src: '/assets/images/slideshow/kasosma.JPG',       label: 'KASOSMA',     sub: '', pan: false },
-    { src: '/assets/images/slideshow/kastrad.JPG',       label: 'KASTRAD',     sub: '', pan: false },
-    { src: '/assets/images/slideshow/kominfo.JPG',       label: 'KOMINFO',     sub: '', pan: false },
-    { src: '/assets/images/slideshow/kwu.JPG',           label: 'KWU',         sub: '', pan: false },
-    { src: '/assets/images/slideshow/porsa.JPG',         label: 'PORSA',       sub: '', pan: false },
+    { src: asset('assets/images/slideshow/fotoall.png'),       label: org?.cabinet_name || 'Kabinet Loyalist Spectra', sub: 'Semua Anggota', pan: true },
+    { src: asset('assets/images/slideshow/bph_gub_wagub.JPG'), label: 'Pimpinan & BPH',   sub: '', pan: false },
+    { src: asset('assets/images/slideshow/dagri.JPG'),         label: 'DAGRI',       sub: '', pan: false },
+    { src: asset('assets/images/slideshow/deplu.JPG'),         label: 'DEPLU',       sub: '', pan: false },
+    { src: asset('assets/images/slideshow/kasosma.JPG'),       label: 'KASOSMA',     sub: '', pan: false },
+    { src: asset('assets/images/slideshow/kastrad.JPG'),       label: 'KASTRAD',     sub: '', pan: false },
+    { src: asset('assets/images/slideshow/kominfo.JPG'),       label: 'KOMINFO',     sub: '', pan: false },
+    { src: asset('assets/images/slideshow/kwu.JPG'),           label: 'KWU',         sub: '', pan: false },
+    { src: asset('assets/images/slideshow/porsa.JPG'),         label: 'PORSA',       sub: '', pan: false },
   ];
   const [slideIdx, setSlideIdx] = useState(0);
   const [fadeIn, setFadeIn] = useState(true);

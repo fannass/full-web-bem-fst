@@ -48,9 +48,10 @@ const MemberCard: React.FC<{ member: CabinetMember; variant?: 'default' | 'compa
 // Cabinet Logo Component
 const CabinetLogo: React.FC<{ className?: string }> = ({ className = "w-12 h-12" }) => {
   const { theme } = useTheme();
+  const assetBase = import.meta.env.BASE_URL;
   const src = theme === 'dark'
-    ? '/assets/images/logo/logo_kabinet_light.png'
-    : '/assets/images/logo/logo_kabinet_dark.png';
+    ? `${assetBase}assets/images/logo/logo_kabinet_light.png`
+    : `${assetBase}assets/images/logo/logo_kabinet_dark.png`;
   return (
     <img
       src={src}
