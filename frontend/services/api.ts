@@ -1,5 +1,5 @@
 import { OrganizationProfile, Post, CabinetMember, Division, PaginatedResponse, ApiResponse } from '../types';
-import { API_BASE_URL, STORAGE_BASE_URL } from '../constants';
+import { API_BASE_URL, getPublicStorageBaseUrl } from '../constants';
 
 // --- API CONFIGURATION ---
 // Use proxy path `/api` which Vite will forward to http://localhost:3000
@@ -7,7 +7,7 @@ const API_URL = '/api/v1';
 
 // Get storage base URL for accessing uploaded files
 const getStorageBaseUrl = (): string => {
-  return STORAGE_BASE_URL || 'http://localhost:3000';
+  return getPublicStorageBaseUrl();
 };
 
 // Helper: Generate Avatar
@@ -31,10 +31,17 @@ const getImageUrl = (storagePath: string | null): string => {
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
+
+  const cleanedPath = path.replace(/^\/?uploads\/?/, '').replace(/^\/?posts\/?/, '');
+  const publicBase = getStorageBaseUrl();
+
+  // Serve uploads from the public /uploads path on the current origin in production
+  if (!publicBase || publicBase === window.location.origin) {
+    return `/uploads/${cleanedPath}`;
+  }
   
   // If relative path, prepend storage URL
-  const storageUrl = getStorageBaseUrl();
-  const imageUrl = `${storageUrl}/uploads/${path}`;
+  const imageUrl = `${publicBase}/uploads/${cleanedPath}`;
   return imageUrl;
 };
 
