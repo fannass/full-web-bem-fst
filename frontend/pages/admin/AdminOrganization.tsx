@@ -15,12 +15,11 @@ interface OrgForm {
   email: string;
   social_instagram: string;
   social_youtube: string;
-  social_facebook: string;
 }
 
 const EMPTY: OrgForm = {
   name: '', description: '', address: '', email: '',
-  social_instagram: '', social_youtube: '', social_facebook: '',
+  social_instagram: '', social_youtube: '',
 };
 
 export const AdminOrganization: React.FC = () => {
@@ -50,7 +49,6 @@ export const AdminOrganization: React.FC = () => {
           email: org.email || '',
           social_instagram: sm.instagram || '',
           social_youtube: sm.youtube || '',
-          social_facebook: sm.facebook || '',
         });
       }
     } catch (e) {
@@ -69,7 +67,6 @@ export const AdminOrganization: React.FC = () => {
       const social_media: Record<string, string> = {};
       if (form.social_instagram) social_media.instagram = form.social_instagram;
       if (form.social_youtube) social_media.youtube = form.social_youtube;
-      if (form.social_facebook) social_media.facebook = form.social_facebook;
 
       await api.updateOrganization(orgId, {
         name: form.name,
@@ -180,12 +177,6 @@ export const AdminOrganization: React.FC = () => {
                     <Typography variant="body2">{form.social_youtube || 'Tidak digunakan'}</Typography>
                   </Box>
                 </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
-                    <Typography variant="caption" color="text.secondary">Facebook</Typography>
-                    <Typography variant="body2">{form.social_facebook || 'Tidak digunakan'}</Typography>
-                  </Box>
-                </Grid>
               </Grid>
             </Card>
           </>
@@ -219,9 +210,6 @@ export const AdminOrganization: React.FC = () => {
                 </Grid>
                 <Grid size={{ xs: 12, md: 4 }}>
                   <TextField {...f('social_youtube')} label="YouTube" placeholder="URL channel" />
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <TextField {...f('social_facebook')} label="Facebook" placeholder="URL atau username" InputProps={{ startAdornment: <Iconify icon="socials:facebook" width={20} sx={{ mr: 1 }} /> }} />
                 </Grid>
               </Grid>
             </Card>
