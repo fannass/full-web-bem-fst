@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
+      base: '/bem-test/',
       server: {
         port: 3001,
         host: '127.0.0.1', // hanya localhost, tidak expose ke jaringan lokal
