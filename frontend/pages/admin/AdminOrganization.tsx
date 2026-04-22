@@ -13,16 +13,14 @@ interface OrgForm {
   description: string;
   address: string;
   email: string;
-  phone: string;
   social_instagram: string;
-  social_twitter: string;
   social_youtube: string;
   social_facebook: string;
 }
 
 const EMPTY: OrgForm = {
-  name: '', description: '', address: '', email: '', phone: '',
-  social_instagram: '', social_twitter: '', social_youtube: '', social_facebook: '',
+  name: '', description: '', address: '', email: '',
+  social_instagram: '', social_youtube: '', social_facebook: '',
 };
 
 export const AdminOrganization: React.FC = () => {
@@ -30,6 +28,7 @@ export const AdminOrganization: React.FC = () => {
   const [form, setForm] = useState<OrgForm>(EMPTY);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [alert, setAlert] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
   const showAlert = (type: 'success' | 'error', msg: string) => {
@@ -49,9 +48,7 @@ export const AdminOrganization: React.FC = () => {
           description: org.description || '',
           address: org.address || '',
           email: org.email || '',
-          phone: org.phone || '',
           social_instagram: sm.instagram || '',
-          social_twitter: sm.twitter || '',
           social_youtube: sm.youtube || '',
           social_facebook: sm.facebook || '',
         });
@@ -71,7 +68,6 @@ export const AdminOrganization: React.FC = () => {
       setSaving(true);
       const social_media: Record<string, string> = {};
       if (form.social_instagram) social_media.instagram = form.social_instagram;
-      if (form.social_twitter) social_media.twitter = form.social_twitter;
       if (form.social_youtube) social_media.youtube = form.social_youtube;
       if (form.social_facebook) social_media.facebook = form.social_facebook;
 
@@ -80,9 +76,9 @@ export const AdminOrganization: React.FC = () => {
         description: form.description,
         address: form.address,
         email: form.email,
-        phone: form.phone,
         social_media,
       });
+      setIsEditing(false);
       showAlert('success', 'Informasi organisasi berhasil disimpan');
     } catch (e: any) {
       showAlert('error', e?.message || 'Gagal menyimpan');
@@ -122,59 +118,136 @@ export const AdminOrganization: React.FC = () => {
           </Alert>
         )}
 
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Informasi Umum</Typography>
-          <Stack spacing={2.5}>
-            <TextField {...f('name')} label="Nama Organisasi" required />
-            <TextField {...f('description')} label="Deskripsi" multiline rows={3} />
-          </Stack>
-        </Card>
+        {!isEditing ? (
+          <>
+            <Card sx={{ p: 3, mb: 3 }}>
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                spacing={2}
+                justifyContent="space-between"
+                alignItems={{ xs: 'flex-start', md: 'center' }}
+                sx={{ mb: 3 }}
+              >
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700}>Ringkasan Organisasi</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Tinjau dulu informasi yang tampil di website, lalu klik edit jika ada yang ingin diubah.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  onClick={() => setIsEditing(true)}
+                  startIcon={<Iconify icon="solar:pen-bold" width={18} />}
+                >
+                  Edit Informasi
+                </Button>
+              </Stack>
 
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Kontak</Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...f('email')} label="Email" type="email" />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...f('phone')} label="Nomor Telepon / WhatsApp" />
-            </Grid>
-            <Grid size={12}>
-              <TextField {...f('address')} label="Alamat" multiline rows={2} />
-            </Grid>
-          </Grid>
-        </Card>
+              <Grid container spacing={2.5}>
+                <Grid size={12}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                    <Typography variant="caption" color="text.secondary">Nama Organisasi</Typography>
+                    <Typography variant="h6" fontWeight={700}>{form.name || 'Belum diisi'}</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={12}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                    <Typography variant="caption" color="text.secondary">Deskripsi</Typography>
+                    <Typography variant="body2">{form.description || 'Belum diisi'}</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                    <Typography variant="caption" color="text.secondary">Email</Typography>
+                    <Typography variant="body2">{form.email || 'Belum diisi'}</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                    <Typography variant="caption" color="text.secondary">Alamat</Typography>
+                    <Typography variant="body2">{form.address || 'Belum diisi'}</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                    <Typography variant="caption" color="text.secondary">Instagram</Typography>
+                    <Typography variant="body2">{form.social_instagram || 'Tidak digunakan'}</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                    <Typography variant="caption" color="text.secondary">YouTube</Typography>
+                    <Typography variant="body2">{form.social_youtube || 'Tidak digunakan'}</Typography>
+                  </Box>
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <Box sx={{ p: 2, borderRadius: 2, bgcolor: 'background.neutral' }}>
+                    <Typography variant="caption" color="text.secondary">Facebook</Typography>
+                    <Typography variant="body2">{form.social_facebook || 'Tidak digunakan'}</Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Card>
+          </>
+        ) : (
+          <>
+            <Card sx={{ p: 3, mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Informasi Umum</Typography>
+              <Stack spacing={2.5}>
+                <TextField {...f('name')} label="Nama Organisasi" required />
+                <TextField {...f('description')} label="Deskripsi" multiline rows={3} />
+              </Stack>
+            </Card>
 
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Media Sosial</Typography>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...f('social_instagram')} label="Instagram" placeholder="@username" />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...f('social_twitter')} label="Twitter / X" placeholder="@username" InputProps={{ startAdornment: <Iconify icon="socials:twitter" width={20} sx={{ mr: 1 }} /> }} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...f('social_youtube')} label="YouTube" placeholder="URL channel" />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <TextField {...f('social_facebook')} label="Facebook" placeholder="URL atau username" InputProps={{ startAdornment: <Iconify icon="socials:facebook" width={20} sx={{ mr: 1 }} /> }} />
-            </Grid>
-          </Grid>
-        </Card>
+            <Card sx={{ p: 3, mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Kontak</Typography>
+              <Grid container spacing={2}>
+                <Grid size={12}>
+                  <TextField {...f('email')} label="Email" type="email" />
+                </Grid>
+                <Grid size={12}>
+                  <TextField {...f('address')} label="Alamat" multiline rows={2} />
+                </Grid>
+              </Grid>
+            </Card>
 
-        <Stack direction="row" justifyContent="flex-end">
-          <Button
-            variant="contained"
-            size="large"
-            onClick={save}
-            disabled={saving || !form.name}
-            startIcon={saving ? <CircularProgress size={18} /> : <Iconify icon="solar:check-circle-bold" width={20} />}
-            sx={{ minWidth: 160 }}
-          >
-            {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
-          </Button>
-        </Stack>
+            <Card sx={{ p: 3, mb: 3 }}>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Media Sosial</Typography>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField {...f('social_instagram')} label="Instagram" placeholder="@username" />
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField {...f('social_youtube')} label="YouTube" placeholder="URL channel" />
+                </Grid>
+                <Grid size={{ xs: 12, md: 4 }}>
+                  <TextField {...f('social_facebook')} label="Facebook" placeholder="URL atau username" InputProps={{ startAdornment: <Iconify icon="socials:facebook" width={20} sx={{ mr: 1 }} /> }} />
+                </Grid>
+              </Grid>
+            </Card>
+
+            <Stack direction="row" justifyContent="flex-end" spacing={1.5}>
+              <Button
+                variant="outlined"
+                size="large"
+                onClick={() => setIsEditing(false)}
+                disabled={saving}
+              >
+                Batal
+              </Button>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={save}
+                disabled={saving || !form.name}
+                startIcon={saving ? <CircularProgress size={18} /> : <Iconify icon="solar:check-circle-bold" width={20} />}
+                sx={{ minWidth: 160 }}
+              >
+                {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+              </Button>
+            </Stack>
+          </>
+        )}
       </Box>
     </AdminLayout>
   );

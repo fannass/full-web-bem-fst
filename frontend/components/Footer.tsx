@@ -52,13 +52,10 @@ export const Footer: React.FC<FooterProps> = ({ organization }) => {
                 {organization?.socials?.youtube && (
                   <li><a href={organization.socials.youtube} target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-red-600 transition-colors">YouTube</a></li>
                 )}
-                {organization?.socials?.twitter && (
-                  <li><a href={`https://twitter.com/${organization.socials.twitter.replace('@','')}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-sky-500 transition-colors">Twitter / X</a></li>
-                )}
                 {organization?.socials?.facebook && (
                   <li><a href={`https://facebook.com/${organization.socials.facebook.replace('@','')}`} target="_blank" rel="noopener noreferrer" className="text-slate-500 dark:text-slate-400 hover:text-blue-600 transition-colors">Facebook</a></li>
                 )}
-                {!organization?.socials?.instagram && !organization?.socials?.youtube && !organization?.socials?.twitter && !organization?.socials?.facebook && (
+                {!organization?.socials?.instagram && !organization?.socials?.youtube && !organization?.socials?.facebook && (
                   <li><span className="text-slate-400 text-sm italic">Belum dikonfigurasi</span></li>
                 )}
              </ul>
