@@ -1,6 +1,7 @@
 import { mergeClasses } from 'minimal-shared/utils';
 
 import { styled } from '@mui/material/styles';
+import { assetPath } from '../../constants';
 
 import { svgColorClasses } from './classes';
 
@@ -9,13 +10,15 @@ import type { SvgColorProps } from './types';
 // ----------------------------------------------------------------------
 
 export function SvgColor({ src, className, sx, ...other }: SvgColorProps) {
+  const resolvedSrc = src.startsWith('/assets/') ? assetPath(src) : src;
+
   return (
     <SvgRoot
       className={mergeClasses([svgColorClasses.root, className])}
       sx={[
         {
-          mask: `url(${src}) no-repeat center / contain`,
-          WebkitMask: `url(${src}) no-repeat center / contain`,
+          mask: `url(${resolvedSrc}) no-repeat center / contain`,
+          WebkitMask: `url(${resolvedSrc}) no-repeat center / contain`,
         },
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}

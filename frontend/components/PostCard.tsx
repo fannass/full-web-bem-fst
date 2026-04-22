@@ -8,6 +8,8 @@ interface PostCardProps {
 }
 
 export const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const fallbackCover = `${import.meta.env.BASE_URL}assets/images/cover/cover-1.webp`;
+
   return (
     <Link to={`/posts/${post.slug}`} className="group h-full flex flex-col bg-white dark:bg-dark-surface rounded-2xl overflow-hidden border border-slate-100 dark:border-white/5 transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
       
@@ -18,6 +20,12 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
           alt={post.title} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
           loading="lazy"
+          onError={(e) => {
+            const target = e.currentTarget;
+            if (target.src !== fallbackCover) {
+              target.src = fallbackCover;
+            }
+          }}
         />
         <div className="absolute top-4 left-4 z-10">
            <span className="bg-white/90 dark:bg-black/80 backdrop-blur-md text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full text-slate-900 dark:text-white shadow-sm">

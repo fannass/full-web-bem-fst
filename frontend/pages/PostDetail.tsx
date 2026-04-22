@@ -11,6 +11,7 @@ export const PostDetail: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const [post, setPost] = useState<Post | null>(null);
   const [loading, setLoading] = useState(true);
+  const fallbackCover = `${import.meta.env.BASE_URL}assets/images/cover/cover-1.webp`;
 
   useSEO({ 
     title: post ? (post.meta_title || post.title) : 'Memuat Artikel...', 
@@ -86,6 +87,12 @@ export const PostDetail: React.FC = () => {
               src={post.image_url} 
               alt={post.title} 
               className="w-full h-full object-cover"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src !== fallbackCover) {
+                  target.src = fallbackCover;
+                }
+              }}
              />
           </div>
         </header>

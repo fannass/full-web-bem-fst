@@ -72,6 +72,7 @@ const emptyForm = {
 export const AdminPosts: React.FC = () => {
   const { isAuthenticated } = useAdminAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fallbackCover = `${import.meta.env.BASE_URL}assets/images/cover/cover-1.webp`;
 
   // ── List state ──
   const [posts, setPosts] = useState<Post[]>([]);
@@ -789,8 +790,14 @@ export const AdminPosts: React.FC = () => {
                           <Box sx={{ gap: 2, display: 'flex', alignItems: 'center' }}>
                             <Box
                               component="img"
-                              src={post.image_url || `/assets/images/cover/cover-1.webp`}
+                              src={post.image_url || fallbackCover}
                               alt={post.title}
+                              onError={(e: React.SyntheticEvent<HTMLImageElement>) => {
+                                const target = e.currentTarget;
+                                if (target.src !== fallbackCover) {
+                                  target.src = fallbackCover;
+                                }
+                              }}
                               sx={{ width: 54, height: 54, objectFit: 'cover', borderRadius: 1.5, flexShrink: 0, border: '1px solid', borderColor: 'divider' }}
                             />
                             <Box sx={{ minWidth: 0 }}>

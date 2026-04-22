@@ -10,13 +10,16 @@ import {
   _description,
   _productNames,
 } from './_mock';
+import { assetPath } from '../constants';
+
+const asset = (path: string) => assetPath(path);
 
 // ----------------------------------------------------------------------
 
 export const _myAccount = {
   displayName: 'Admin BEM FST',
   email: 'admin@bemfst.unisa.ac.id',
-  photoURL: '/assets/images/avatar/avatar-25.webp',
+  photoURL: asset('assets/images/avatar/avatar-25.webp'),
 };
 
 // ----------------------------------------------------------------------
@@ -102,17 +105,17 @@ export const _langs = [
   {
     value: 'en',
     label: 'English',
-    icon: '/assets/icons/flags/ic-flag-en.svg',
+    icon: asset('assets/icons/flags/ic-flag-en.svg'),
   },
   {
     value: 'de',
     label: 'German',
-    icon: '/assets/icons/flags/ic-flag-de.svg',
+    icon: asset('assets/icons/flags/ic-flag-de.svg'),
   },
   {
     value: 'fr',
     label: 'French',
-    icon: '/assets/icons/flags/ic-flag-fr.svg',
+    icon: asset('assets/icons/flags/ic-flag-fr.svg'),
   },
 ];
 
