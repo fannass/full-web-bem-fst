@@ -75,7 +75,7 @@ const mapCabinetMembers = (cabinet: any): CabinetMember[] => {
             name: m.name,
             position: m.position || '',
             department: dept,
-            photo_url: m.photo_url || m.photo || getAvatar(m.name),
+            photo_url: getImageUrl(m.photo_url || m.photo) || getAvatar(m.name),
             bio: m.bio || '',
             prodi: m.prodi || '',
             order: m.order ?? 0
@@ -98,7 +98,7 @@ const mapOrganization = (data: any, cabinet?: any): OrganizationProfile => {
     email: data.email,
     phone: data.phone,
     address: data.address,
-    logo_url: data.logo_url || getAvatar("BEM FST"),
+    logo_url: getImageUrl(data.logo_url) || getAvatar("BEM FST"),
     cabinet_name: cabinet?.name || 'BEM FST UNISA',
     tagline: cabinet?.tagline || data.description,
     period_years: cabinet?.periods ? `${cabinet.periods.year_start}/${cabinet.periods.year_end}` : (cabinet?.period ? `${cabinet.period.year_start}/${cabinet.period.year_end}` : '2025/2026'),
@@ -491,7 +491,7 @@ class ApiService {
         position: m.position || '',
         department: dept,
         division_id: m.division_id ? Number(m.division_id) : undefined,
-        photo_url: m.photo_url || m.photo || getAvatar(m.name),
+        photo_url: getImageUrl(m.photo_url || m.photo) || getAvatar(m.name),
         bio: m.bio || '',
         prodi: m.prodi || '',
         instagram: m.instagram || '',
@@ -587,13 +587,13 @@ class ApiService {
   async createMember(data: { division_id: number; name: string; position: string; prodi?: string; photo?: string; bio?: string; instagram?: string; linkedin?: string; order?: number }): Promise<CabinetMember> {
     const response = await this.fetchFromAPI<ApiResponse<any>>('/cabinet/members', { method: 'POST', body: JSON.stringify(data) });
     const m = response.data;
-    return { id: Number(m.id), division_id: Number(m.division_id), name: m.name, position: m.position, photo_url: m.photo || '', bio: m.bio, prodi: m.prodi, department: m.divisions?.name };
+    return { id: Number(m.id), division_id: Number(m.division_id), name: m.name, position: m.position, photo_url: getImageUrl(m.photo_url || m.photo) || '', bio: m.bio, prodi: m.prodi, department: m.divisions?.name };
   }
 
   async updateMember(id: number, data: { division_id?: number; name?: string; position?: string; prodi?: string; photo?: string; bio?: string; instagram?: string; linkedin?: string; order?: number }): Promise<CabinetMember> {
     const response = await this.fetchFromAPI<ApiResponse<any>>(`/cabinet/members/${id}`, { method: 'PUT', body: JSON.stringify(data) });
     const m = response.data;
-    return { id: Number(m.id), division_id: Number(m.division_id), name: m.name, position: m.position, photo_url: m.photo || '', bio: m.bio, prodi: m.prodi, department: m.divisions?.name };
+    return { id: Number(m.id), division_id: Number(m.division_id), name: m.name, position: m.position, photo_url: getImageUrl(m.photo_url || m.photo) || '', bio: m.bio, prodi: m.prodi, department: m.divisions?.name };
   }
 
   async deleteMember(id: number): Promise<void> {

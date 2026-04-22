@@ -53,6 +53,7 @@ export const AdminDashboard: React.FC = () => {
   const [allPosts, setAllPosts] = useState<any[]>([]);
   const [totalCabinet, setTotalCabinet] = useState(0);
   const [loading, setLoading] = useState(true);
+  const coverAsset = (index: number) => `${import.meta.env.BASE_URL}assets/images/cover/cover-${index}.webp`;
 
   const loadData = useCallback(async () => {
     try {
@@ -97,7 +98,7 @@ export const AdminDashboard: React.FC = () => {
     id: String(post.id),
     title: post.title,
     description: post.excerpt || post.content?.substring(0, 100) || '',
-    coverUrl: post.image_url || `/assets/images/cover/cover-${(idx % 24) + 1}.webp`,
+    coverUrl: post.image_url || coverAsset((idx % 24) + 1),
     postedAt: post.created_at,
   }));
 
