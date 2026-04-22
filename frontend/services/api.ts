@@ -32,7 +32,7 @@ const getImageUrl = (storagePath: string | null): string => {
     return path;
   }
 
-  const cleanedPath = path.replace(/^\/?uploads\/?/, '').replace(/^\/?posts\/?/, '');
+  const cleanedPath = path.replace(/^\/?uploads\/?/, '');
   const publicBase = getStorageBaseUrl();
 
   // Serve uploads from the public /uploads path on the current origin in production
