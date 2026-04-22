@@ -67,6 +67,21 @@ const emptyForm = {
   canonical_url: '',
 };
 
+const toDatetimeLocalValue = (value?: string): string => {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
 // ----------------------------------------------------------------------
 
 export const AdminPosts: React.FC = () => {
@@ -187,7 +202,7 @@ export const AdminPosts: React.FC = () => {
         category: post.category === 'Berita' ? 'news' : 'event',
         status: (post.status as 'draft' | 'published') || 'draft',
         author: post.author || '',
-        published_at: (typeof post.published_at === 'string' && post.published_at) ? post.published_at.slice(0, 16) : '',
+        published_at: toDatetimeLocalValue(post.published_at),
         featured_image: null,
         featured_image_preview: post.image_url || '',
         meta_title: post.meta_title || '',

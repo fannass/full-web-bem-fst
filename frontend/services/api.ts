@@ -13,6 +13,24 @@ const getStorageBaseUrl = (): string => {
 // Helper: Generate Avatar
 const getAvatar = (name: string) => `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&size=512`;
 
+const normalizePublishedAtForApi = (value?: string): string | undefined => {
+  if (!value) return undefined;
+
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  // `datetime-local` returns a local timestamp without timezone.
+  // Convert it to ISO so backend parsing is explicit and consistent.
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(trimmed)) {
+    const date = new Date(trimmed);
+    if (!Number.isNaN(date.getTime())) {
+      return date.toISOString();
+    }
+  }
+
+  return trimmed;
+};
+
 // Helper: Convert storage path to full public URL
 const getImageUrl = (storagePath: string | null): string => {
   // Default placeholder if no path
@@ -315,7 +333,8 @@ class ApiService {
       formData.append('content', data.content);
       formData.append('category', data.category);
       formData.append('status', data.status || 'draft');
-      if (data.published_at) formData.append('published_at', data.published_at);
+      const normalizedPublishedAt = normalizePublishedAtForApi(data.published_at);
+      if (normalizedPublishedAt) formData.append('published_at', normalizedPublishedAt);
       if (data.meta_title) formData.append('meta_title', data.meta_title);
       if (data.meta_description) formData.append('meta_description', data.meta_description);
       if (data.canonical_url) formData.append('canonical_url', data.canonical_url);
@@ -387,7 +406,8 @@ class ApiService {
       formData.append('content', data.content);
       formData.append('category', data.category);
       formData.append('status', data.status || 'draft');
-      if (data.published_at) formData.append('published_at', data.published_at);
+      const normalizedPublishedAt = normalizePublishedAtForApi(data.published_at);
+      if (normalizedPublishedAt) formData.append('published_at', normalizedPublishedAt);
       if (data.meta_title) formData.append('meta_title', data.meta_title);
       if (data.meta_description) formData.append('meta_description', data.meta_description);
       if (data.canonical_url) formData.append('canonical_url', data.canonical_url);
