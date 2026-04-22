@@ -31,6 +31,36 @@ const normalizePublishedAtForApi = (value?: string): string | undefined => {
   return trimmed;
 };
 
+const normalizeApiDate = (value: unknown): string | undefined => {
+  if (!value) return undefined;
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    if (!trimmed) return undefined;
+
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+
+    return trimmed;
+  }
+
+  if (typeof value === 'number' || value instanceof Date) {
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toISOString();
+    }
+  }
+
+  if (typeof value === 'object') {
+    const candidate = (value as { $date?: unknown; date?: unknown; value?: unknown });
+    return normalizeApiDate(candidate.$date ?? candidate.date ?? candidate.value);
+  }
+
+  return undefined;
+};
+
 // Helper: Convert storage path to full public URL
 const getImageUrl = (storagePath: string | null): string => {
   // Default placeholder if no path
@@ -126,6 +156,9 @@ const mapOrganization = (data: any, cabinet?: any): OrganizationProfile => {
 
 // Helper: Map posts from API response
 const mapPost = (p: any): Post => {
+  const createdAt = normalizeApiDate(p.created_at);
+  const publishedAt = normalizeApiDate(p.published_at);
+
   return {
     id: p.id,
     title: p.title,
@@ -135,8 +168,8 @@ const mapPost = (p: any): Post => {
     category: p.category === 'news' ? 'Berita' : p.category === 'event' ? 'Event' : p.category,
     image_url: getImageUrl(p.featured_image || p.image_url),
     author: p.author || "Admin BEM",
-    created_at: (typeof p.created_at === 'string' ? p.created_at : null) || (typeof p.published_at === 'string' ? p.published_at : null) || new Date().toISOString(),
-    published_at: typeof p.published_at === 'string' ? p.published_at : undefined,
+    created_at: createdAt || publishedAt || new Date().toISOString(),
+    published_at: publishedAt,
     views: p.views || 0,
     status: p.status || 'draft',
     // Add SEO fields from API
