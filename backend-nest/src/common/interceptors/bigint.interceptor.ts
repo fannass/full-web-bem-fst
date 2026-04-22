@@ -9,6 +9,10 @@ import { map } from 'rxjs/operators';
 
 @Injectable()
 export class BigIntInterceptor implements NestInterceptor {
+  private isDateLike(value: unknown): value is Date {
+    return Object.prototype.toString.call(value) === '[object Date]';
+  }
+
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     return next.handle().pipe(
       map((data) => {
@@ -23,7 +27,7 @@ export class BigIntInterceptor implements NestInterceptor {
     }
 
     // Date objects must be converted to ISO string before iterating
-    if (obj instanceof Date) {
+    if (this.isDateLike(obj)) {
       return obj.toISOString();
     }
 
@@ -37,7 +41,7 @@ export class BigIntInterceptor implements NestInterceptor {
         const value = obj[key];
         if (typeof value === 'bigint') {
           serialized[key] = value.toString();
-        } else if (value instanceof Date) {
+        } else if (this.isDateLike(value)) {
           serialized[key] = value.toISOString();
         } else if (typeof value === 'object' && value !== null) {
           serialized[key] = this.serializeData(value);
