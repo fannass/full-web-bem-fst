@@ -30,7 +30,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
       <div className="p-6 flex-1 flex flex-col">
         <div className="mb-3">
           <time className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-            {formatDate(post.created_at)}
+            {formatDate(post.published_at || post.created_at)}
           </time>
           <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-2 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
             {post.title}

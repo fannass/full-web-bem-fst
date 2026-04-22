@@ -110,7 +110,8 @@ const mapPost = (p: any): Post => {
     category: p.category === 'news' ? 'Berita' : p.category === 'event' ? 'Event' : p.category,
     image_url: getImageUrl(p.featured_image || p.image_url),
     author: p.author || "Admin BEM",
-    created_at: p.created_at || p.published_at || new Date().toISOString(),
+    created_at: (typeof p.created_at === 'string' ? p.created_at : null) || (typeof p.published_at === 'string' ? p.published_at : null) || new Date().toISOString(),
+    published_at: typeof p.published_at === 'string' ? p.published_at : undefined,
     views: p.views || 0,
     status: p.status || 'draft',
     // Add SEO fields from API

@@ -28,6 +28,7 @@ export interface Post {
   image_url: string;
   author: string;
   created_at: string;
+  published_at?: string;
   views: number;
   status?: string;
   // SEO fields

@@ -21,7 +21,7 @@ export const PostDetail: React.FC = () => {
     canonicalUrl: post?.canonical_url || undefined,
     type: 'article',
     author: post ? post.author : 'BEM FST UNISA',
-    publishedDate: post ? new Date(post.created_at).toISOString() : undefined,
+    publishedDate: post ? new Date(post.published_at || post.created_at).toISOString() : undefined,
     keywords: post ? `${post.category}, berita mahasiswa, BEM FST` : undefined,
     section: post ? post.category : undefined,
   });
@@ -76,7 +76,7 @@ export const PostDetail: React.FC = () => {
               {post.category}
             </span>
             <span>&bull;</span>
-            <time>{formatDate(post.created_at)}</time>
+            <time>{formatDate(post.published_at || post.created_at)}</time>
           </div>
           <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white leading-tight mb-8">
             {post.title}

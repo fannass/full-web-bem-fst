@@ -58,6 +58,7 @@ const emptyForm = {
   category: 'news' as 'news' | 'event',
   status: 'draft' as 'draft' | 'published',
   author: '',
+  published_at: '',
   featured_image: null as File | null,
   featured_image_preview: '' as string,
   meta_title: '',
@@ -133,6 +134,7 @@ export const AdminPosts: React.FC = () => {
         category: formData.category,
         status: publishNow ? 'published' : formData.status,
         author: formData.author.trim() || 'Admin BEM',
+        published_at: formData.published_at || undefined,
         meta_title: formData.meta_title.trim() || formData.title.trim(),
         meta_description: formData.meta_description.trim(),
         og_image: formData.og_image.trim(),
@@ -184,6 +186,7 @@ export const AdminPosts: React.FC = () => {
         category: post.category === 'Berita' ? 'news' : 'event',
         status: (post.status as 'draft' | 'published') || 'draft',
         author: post.author || '',
+        published_at: (typeof post.published_at === 'string' && post.published_at) ? post.published_at.slice(0, 16) : '',
         featured_image: null,
         featured_image_preview: post.image_url || '',
         meta_title: post.meta_title || '',
@@ -442,6 +445,19 @@ export const AdminPosts: React.FC = () => {
                     </MenuItem>
                   </Select>
                 </FormControl>
+
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Tanggal Publikasi"
+                  type="datetime-local"
+                  value={formData.published_at}
+                  onChange={(e) => setFormData(f => ({ ...f, published_at: e.target.value }))}
+                  disabled={submitting}
+                  sx={{ mt: 2 }}
+                  InputLabelProps={{ shrink: true }}
+                  helperText="Kosongkan untuk gunakan waktu saat ini"
+                />
               </Card>
 
               {/* Featured image card */}
@@ -799,7 +815,7 @@ export const AdminPosts: React.FC = () => {
                         </TableCell>
                         <TableCell>
                           <Typography variant="caption" color="text.secondary">
-                            {new Date(post.created_at).toLocaleDateString('id-ID', {
+                            {new Date(post.published_at || post.created_at).toLocaleDateString('id-ID', {
                               day: 'numeric', month: 'short', year: 'numeric',
                             })}
                           </Typography>
