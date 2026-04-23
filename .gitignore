@@ -39,3 +39,6 @@ Thumbs.db
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Internal deployment docs
+README_DEPLOYMENT_VM_UBUNTU.md
