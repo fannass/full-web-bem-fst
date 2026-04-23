@@ -322,7 +322,7 @@ export const AdminPosts: React.FC = () => {
               size="small"
               disabled={submitting}
               onClick={() => handleSubmit(true)}
-              startIcon={<Iconify icon="solar:upload-bold" width={16} />}
+              startIcon={<Iconify icon="mingcute:add-line" width={16} />}
               color="primary"
               sx={{ minWidth: 130 }}
             >

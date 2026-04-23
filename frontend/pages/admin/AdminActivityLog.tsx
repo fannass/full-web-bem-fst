@@ -49,12 +49,12 @@ interface ActivityLogEntry {
 
 // Action display config
 const ACTION_CONFIG: Record<string, { label: string; color: 'success' | 'error' | 'info' | 'warning' | 'default'; icon: string }> = {
-  'post.created':      { label: 'Artikel Dibuat',     color: 'success', icon: 'solar:document-add-bold' },
+  'post.created':      { label: 'Artikel Dibuat',     color: 'success', icon: 'solar:document-text-bold' },
   'post.updated':      { label: 'Artikel Diedit',     color: 'info',    icon: 'solar:pen-bold' },
-  'post.published':    { label: 'Artikel Dipublish',  color: 'success', icon: 'solar:upload-bold' },
+  'post.published':    { label: 'Artikel Dipublish',  color: 'success', icon: 'mingcute:add-line' },
   'post.deleted':      { label: 'Artikel Dihapus',    color: 'error',   icon: 'solar:trash-bin-trash-bold' },
-  'auth.login':        { label: 'Login Berhasil',     color: 'info',    icon: 'solar:login-2-bold' },
-  'auth.login_failed': { label: 'Login Gagal',        color: 'error',   icon: 'solar:shield-warning-bold' },
+  'auth.login':        { label: 'Login Berhasil',     color: 'info',    icon: 'solar:shield-keyhole-bold-duotone' },
+  'auth.login_failed': { label: 'Login Gagal',        color: 'error',   icon: 'solar:shield-keyhole-bold-duotone' },
 };
 
 const getActionConfig = (action: string) =>
@@ -163,9 +163,9 @@ export const AdminActivityLog: React.FC = () => {
         <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 2, mb: 3 }}>
           {[
             { label: 'Total Log',          value: total,           icon: 'solar:document-text-bold', color: '#6366f1', bg: '#6366f115' },
-            { label: 'Artikel Dibuat',     value: articlesCreated, icon: 'solar:document-add-bold',  color: '#22c55e', bg: '#22c55e15' },
+            { label: 'Artikel Dibuat',     value: articlesCreated, icon: 'solar:document-text-bold', color: '#22c55e', bg: '#22c55e15' },
             { label: 'Artikel Dihapus',    value: articlesDeleted, icon: 'solar:trash-bin-trash-bold',color: '#ef4444', bg: '#ef444415' },
-            { label: 'Login Gagal',        value: loginFailed,     icon: 'solar:shield-warning-bold', color: '#f59e0b', bg: '#f59e0b15' },
+            { label: 'Login Gagal',        value: loginFailed,     icon: 'solar:shield-keyhole-bold-duotone', color: '#f59e0b', bg: '#f59e0b15' },
           ].map((s) => (
             <Card key={s.label} variant="outlined" sx={{ p: 2.5, display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box sx={{ width: 44, height: 44, borderRadius: 2, bgcolor: s.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
