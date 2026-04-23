@@ -17,7 +17,7 @@ interface SEOProps {
 }
 
 const DEFAULT_OG_IMAGE = '/assets/images/logo/logo_BEM.png';
-const SITE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://bemfstunisa.ac.id';
+const SITE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://bemfst.unisayogya.ac.id';
 const IG_HANDLE = '@bemfstunisa';
 
 const createMetaTag = (name: string, content: string, isProperty = false) => {

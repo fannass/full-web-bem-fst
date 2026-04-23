@@ -1,41 +1,42 @@
-# Deployment Guide (Testing) - BEM FST
+# Deployment Guide (Production) - BEM FST
 
-Dokumen ini berisi panduan deployment yang sudah terbukti berjalan untuk project BEM FST pada server Ubuntu VM (Proxmox), menggunakan Nginx + PM2 + MySQL.
+Dokumen ini adalah panduan operasional deployment production BEM FST pada VM Ubuntu, setelah migrasi dari mode testing `/bem-test` ke domain production khusus:
 
-Dokumen dibuat untuk kebutuhan operasional tim, dengan user PIC: Frenky.
-
-## 1. Ringkasan Kondisi Deployment
-
-- Environment target: Ubuntu 24.04 LTS (VM Proxmox)
-- Domain: https://mataf-fst.unisayogya.ac.id
-- Mode testing app BEM: https://mataf-fst.unisayogya.ac.id/bem-test/
-- Backend API public path: https://mataf-fst.unisayogya.ac.id/api/v1
-- Backend internal bind: http://127.0.0.1:3000
-- Process manager backend: PM2
+- Production web: `https://bemfst.unisayogya.ac.id/`
+- Production API: `https://bemfst.unisayogya.ac.id/api/v1`
+- Backend internal bind: `http://127.0.0.1:3000`
+- Process manager: PM2
+- Reverse proxy: Nginx
 - Database: MySQL lokal VM
-- Existing website lama tetap dipertahankan di root domain (/)
 
-## 2. Arsitektur Singkat
+Dokumen ini menggambarkan kondisi production yang aktif saat ini. Riwayat konsep testing lama di `mataf-fst.unisayogya.ac.id/bem-test/` dipertahankan hanya sebagai konteks historis, bukan target deploy utama lagi.
 
-- Frontend React (Vite build) disajikan oleh Nginx dari folder statis `/var/www/bem-test`.
-- Backend NestJS berjalan di PM2 pada port 3000.
-- Nginx reverse proxy:
-  - `/api/` -> `http://127.0.0.1:3000/api/`
-  - `/uploads/` -> `http://127.0.0.1:3000/uploads/`
-- Frontend testing diakses via `/bem-test/`.
+## 1. Arsitektur Aktif
 
-## 3. Prasyarat Server
+- Frontend React/Vite disajikan statis dari `/var/www/bemfst`
+- Backend NestJS berjalan di PM2 pada port `3000`
+- Nginx domain `bemfst.unisayogya.ac.id` menjadi entry point publik
+- Domain `mataf-fst.unisayogya.ac.id` dipisahkan kembali untuk website `mataf`
+- API dan uploads hanya dipublikasikan lewat reverse proxy Nginx
 
-Pastikan hal berikut tersedia:
+Mapping publik:
+
+- `/` -> frontend BEM production
+- `/api/` -> `http://127.0.0.1:3000/api/`
+- `/uploads/` -> `http://127.0.0.1:3000/uploads/`
+
+## 2. Prasyarat Server
+
+Pastikan tersedia:
 
 - Nginx aktif
-- SSL domain valid (certbot)
+- SSL certbot aktif
 - Node.js + npm
 - PM2
 - MySQL server + client
 - Git
 
-Contoh cek cepat:
+Cek cepat:
 
 ```bash
 nginx -v
@@ -47,7 +48,7 @@ git --version
 mysql --version
 ```
 
-## 4. Setup Database MySQL
+## 3. Setup Database
 
 Masuk MySQL:
 
@@ -55,7 +56,7 @@ Masuk MySQL:
 mysql
 ```
 
-Buat database dan user khusus app:
+Buat database dan user aplikasi:
 
 ```sql
 CREATE DATABASE bem_fst_prod CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -71,7 +72,7 @@ Verifikasi:
 mysql -u bem_user -p -h 127.0.0.1 -e "SHOW DATABASES;"
 ```
 
-## 5. Clone Repository
+## 4. Clone Repository
 
 ```bash
 mkdir -p /opt/apps
@@ -80,13 +81,13 @@ git clone https://github.com/fannass/full-web-bem-fst.git
 cd /opt/apps/full-web-bem-fst
 ```
 
-## 6. Konfigurasi Backend (.env)
+## 5. Konfigurasi Backend (.env)
 
 Lokasi file env:
 
 - `/opt/apps/full-web-bem-fst/backend-nest/.env`
 
-Contoh isi untuk testing:
+Contoh nilai production:
 
 ```env
 DATABASE_URL="mysql://bem_user:GANTI_PASSWORD_DB@127.0.0.1:3306/bem_fst_prod"
@@ -95,20 +96,21 @@ JWT_EXPIRES_IN=8h
 PORT=3000
 NODE_ENV=production
 ADMIN_USERNAME=svc_core
-ADMIN_PASSWORD=BemTest12345
+ADMIN_PASSWORD=GANTI_PASSWORD_ADMIN_PRODUCTION
 UPLOAD_DIR=./uploads
 MAX_FILE_SIZE=5242880
 ALLOWED_MIME_TYPES=image/jpeg,image/png,image/gif,image/webp
-CORS_ORIGIN=https://mataf-fst.unisayogya.ac.id
-FRONTEND_URL=https://mataf-fst.unisayogya.ac.id/bem-test
+CORS_ORIGIN=https://bemfst.unisayogya.ac.id
+FRONTEND_URL=https://bemfst.unisayogya.ac.id
 ```
 
-Catatan penting:
+Catatan:
 
-- Jangan commit file `.env` ke GitHub.
-- Untuk password dengan karakter spesial, verifikasi parsing env dengan test login API.
+- Jangan commit file `.env`
+- Gunakan password admin production yang berbeda dari testing
+- `FRONTEND_URL` dipakai juga oleh generator sitemap backend
 
-## 7. Build dan Jalankan Backend
+## 6. Build dan Jalankan Backend
 
 ```bash
 cd /opt/apps/full-web-bem-fst/backend-nest
@@ -121,58 +123,60 @@ pm2 save
 pm2 startup systemd -u root --hp /root
 ```
 
+Jika service sudah ada, gunakan:
+
+```bash
+pm2 restart bem-api --update-env
+```
+
 Verifikasi backend lokal:
 
 ```bash
 curl -I http://127.0.0.1:3000/api/v1/posts
 ```
 
-## 8. Build dan Publish Frontend
+Harapan hasil:
 
-Penting: karena app dipasang di subpath `/bem-test`, build harus pakai base path.
+- `200 OK`
+
+## 7. Build dan Publish Frontend Production
+
+Karena frontend sekarang berjalan di root domain `bemfst`, build gunakan base path root:
 
 ```bash
 cd /opt/apps/full-web-bem-fst/frontend
 npm install
-npm run build -- --base=/bem-test/
-mkdir -p /var/www/bem-test
-rm -rf /var/www/bem-test/*
-cp -r dist/* /var/www/bem-test/
+npm run build -- --base=/
+mkdir -p /var/www/bemfst
+rm -rf /var/www/bemfst/*
+cp -r dist/* /var/www/bemfst/
 ```
 
-## 9. Konfigurasi Nginx (Domain Existing)
+## 8. Konfigurasi Nginx Production
 
-File config domain:
+File config:
 
-- `/etc/nginx/sites-available/mataf-fst`
+- `/etc/nginx/sites-available/bemfst`
 
-Contoh konfigurasi yang digunakan:
+Contoh konfigurasi aktif:
 
 ```nginx
 server {
     listen 80;
-    server_name mataf-fst.unisayogya.ac.id;
+    server_name bemfst.unisayogya.ac.id;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name mataf-fst.unisayogya.ac.id;
+    server_name bemfst.unisayogya.ac.id;
 
-    root /var/www/mataf-fst/current;
+    root /var/www/bemfst;
     index index.html;
+    client_max_body_size 6M;
 
-    location = /beranda {
-        rewrite ^ /index.html break;
-    }
-
-    location = /bem-test {
-        return 301 /bem-test/;
-    }
-
-    location /bem-test/ {
-        alias /var/www/bem-test/;
-        try_files $uri $uri/ /bem-test/index.html;
+    location / {
+        try_files $uri $uri/ /index.html;
     }
 
     location /api/ {
@@ -193,81 +197,80 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
-    location / {
-        try_files $uri $uri.html $uri/ =404;
-    }
-
-    location ~ ^/[0-9][0-9][0-9][0-9]/ {
-        root /var/www/mataf-fst;
-        index index.html;
-    }
-
-    ssl_certificate /etc/letsencrypt/live/mataf-fst.unisayogya.ac.id/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/mataf-fst.unisayogya.ac.id/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/bemfst.unisayogya.ac.id/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/bemfst.unisayogya.ac.id/privkey.pem;
     include /etc/letsencrypt/options-ssl-nginx.conf;
     ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
 }
 ```
 
-Apply config:
+Aktifkan config:
 
 ```bash
+ln -s /etc/nginx/sites-available/bemfst /etc/nginx/sites-enabled/bemfst
 nginx -t
 systemctl reload nginx
 ```
 
-## 10. Verifikasi Deployment
-
-Uji endpoint:
+Pasang SSL jika belum ada:
 
 ```bash
-curl -I https://mataf-fst.unisayogya.ac.id/bem-test/
-curl -I https://mataf-fst.unisayogya.ac.id/api/v1/posts
+certbot --nginx -d bemfst.unisayogya.ac.id
+```
+
+## 9. Verifikasi Production
+
+Tes endpoint utama:
+
+```bash
+curl -I https://bemfst.unisayogya.ac.id/
+curl -I https://bemfst.unisayogya.ac.id/api/v1/posts
+curl -s https://bemfst.unisayogya.ac.id/api/v1/organization
 ```
 
 Harapan hasil:
 
-- `/bem-test/` -> 200 OK
-- `/api/v1/posts` -> 200 OK
+- `/` -> `200 OK`
+- `/api/v1/posts` -> `200 OK`
+- endpoint organisasi mengembalikan JSON valid
 
-## 11. Troubleshooting yang Sudah Terjadi
+Checklist browser:
 
-### 11.1 Logo/gambar tidak muncul di subpath /bem-test
+- halaman publik tampil normal
+- asset/logo tampil normal
+- login admin berhasil
+- daftar dan detail post tampil
+- upload featured image berhasil
+- gambar dari `/uploads/...` tampil
+- console browser bersih dari error CSP/Iconify
 
-Gejala:
+## 10. SEO dan Metadata Publik
 
-- Gambar tampil broken, alt text muncul.
+Status production yang perlu dijaga:
 
-Penyebab:
+- canonical mengarah ke `https://bemfst.unisayogya.ac.id/`
+- OG/Twitter URL mengarah ke domain production
+- OG/Twitter image memakai asset domain sendiri, bukan placeholder
+- `robots.txt` menunjuk ke sitemap production
+- `frontend/public/sitemap.xml` tidak lagi memakai `localhost`
+- dynamic sitemap backend tersedia di:
+  - `https://bemfst.unisayogya.ac.id/api/v1/posts/sitemap/xml`
 
-- Path asset masih absolut (`/assets/...`) sehingga tidak kompatibel dengan base path `/bem-test`.
+## 11. Hardening yang Sudah Aktif
 
-Solusi:
+Hardening yang sudah aktif di backend:
 
-- Ubah source path asset menjadi berbasis `import.meta.env.BASE_URL`.
-- Rebuild frontend dengan `--base=/bem-test/`.
-- Publish ulang folder `dist`.
+- Helmet aktif untuk security headers
+- Global throttling: `30 request / menit / IP`
+- Endpoint login admin: `5 request / menit / IP`
+- Login sukses dan gagal dicatat ke activity log
 
-### 11.2 Login admin 401 Unauthorized
+Catatan:
 
-Gejala:
+- Hardening login dasar sudah aktif di aplikasi
+- Jika ingin ditingkatkan lagi, bisa tambah rate limiting Nginx dan monitoring log login gagal
 
-- API login mengembalikan 401.
-
-Penyebab yang ditemukan:
-
-- Kredensial yang dikirim tidak sesuai env backend.
-- Command test sempat menggunakan placeholder.
-
-Solusi yang tervalidasi:
-
-```bash
-curl -s -X POST https://mataf-fst.unisayogya.ac.id/api/v1/auth/login -H "Content-Type: application/json" -d '{"username":"svc_core","password":"BemTest12345"}'
-```
-
-Jika sukses, response berisi `success: true` dan `access_token`.
-
-## 12. SOP Update Aplikasi (Setelah Ada Commit Baru)
+## 12. SOP Update Aplikasi
 
 ### 12.1 Update backend
 
@@ -284,248 +287,74 @@ pm2 status
 ### 12.2 Update frontend
 
 ```bash
-cd /opt/apps/full-web-bem-fst/frontend
+cd /opt/apps/full-web-bem-fst
+git pull origin main
+cd frontend
 npm install
-npm run build -- --base=/bem-test/
-rm -rf /var/www/bem-test/*
-cp -r dist/* /var/www/bem-test/
+npm run build -- --base=/
+rm -rf /var/www/bemfst/*
+cp -r dist/* /var/www/bemfst/
 nginx -t
 systemctl reload nginx
 ```
 
-## 13. Operasional Harian
+Setelah publish frontend:
 
-Cek status service:
+- lakukan hard refresh browser
+- cek lagi halaman home, admin, dan post detail
+
+## 13. Backup Rutin
+
+Minimal backup yang wajib ada:
+
+- database `bem_fst_prod`
+- file `/opt/apps/full-web-bem-fst/backend-nest/.env`
+- folder `/opt/apps/full-web-bem-fst/backend-nest/uploads`
+- file `/etc/nginx/sites-available/bemfst`
+- file `/etc/nginx/sites-available/mataf-fst`
+- snapshot config penuh `nginx -T`
+
+Contoh command manual:
+
+```bash
+mysqldump -u bem_user -p -h 127.0.0.1 bem_fst_prod > /root/backup-bem_fst_prod-$(date +%F).sql
+cp /opt/apps/full-web-bem-fst/backend-nest/.env /root/backend-env-$(date +%F).backup
+cp -r /opt/apps/full-web-bem-fst/backend-nest/uploads /root/uploads-backup-$(date +%F)
+cp /etc/nginx/sites-available/bemfst /root/bemfst-nginx-$(date +%F).backup
+cp /etc/nginx/sites-available/mataf-fst /root/mataf-fst-nginx-$(date +%F).backup
+nginx -T > /root/nginx-full-$(date +%F).conf
+```
+
+## 14. Operasional Harian
 
 ```bash
 pm2 status
 pm2 logs bem-api --lines 100
 systemctl status nginx --no-pager
+curl -I https://bemfst.unisayogya.ac.id
+curl -I https://bemfst.unisayogya.ac.id/api/v1/posts
 ```
 
-Backup dasar:
+## 15. Catatan Migrasi
 
-- Backup database `bem_fst_prod`
-- Backup file `/opt/apps/full-web-bem-fst/backend-nest/.env`
-- Backup file `/etc/nginx/sites-available/mataf-fst`
-- Backup folder upload `/opt/apps/full-web-bem-fst/backend-nest/uploads`
+Migrasi dari testing ke production domain BEM sudah selesai dengan status:
 
-## 14. Catatan Keamanan
+- frontend production pindah dari `/bem-test` ke root domain `bemfst`
+- config Nginx `bemfst` dipisah dari `mataf`
+- route `/bem-test`, `/api`, dan `/uploads` pada domain `mataf` sudah dibersihkan
+- domain `mataf` kembali fokus untuk website `mataf`
 
-- Ganti password admin testing sebelum go-live.
-- Gunakan JWT secret panjang dan acak.
-- Batasi akses SSH, pertimbangkan menyalakan firewall sesuai policy kampus.
-- Jangan gunakan kredensial root database untuk aplikasi.
+Dokumen konsep arsitektur final tetap mengacu ke:
 
-## 15. Status Saat Dokumen Ini Dibuat
+- `PRODUCTION_CONCEPT_BEMFST_DOMAIN.md`
 
-- Backend PM2: online
-- API endpoint `/api/v1/posts`: 200
-- Frontend testing `/bem-test/`: 200
-- Login API admin: sukses dengan user aktif di env
+## 16. Status Saat Dokumen Ini Diperbarui
 
----
-
-Jika nanti ingin dipindah dari mode testing (`/bem-test`) ke production penuh di root/subdomain khusus, cukup sesuaikan base path frontend, env `FRONTEND_URL`, dan mapping location Nginx.
-
-## 16. Runbook Kronologis (Command dari Clone Sampai Fix Error)
-
-Bagian ini adalah urutan command praktis yang sudah dipakai pada proses deployment/testing ini.
-
-### 16.1 Clone Repository
-
-```bash
-mkdir -p /opt/apps
-cd /opt/apps
-git clone https://github.com/fannass/full-web-bem-fst.git
-cd /opt/apps/full-web-bem-fst
-```
-
-### 16.2 Setup Backend dan Environment
-
-```bash
-cd /opt/apps/full-web-bem-fst/backend-nest
-cp .env.example .env
-nano .env
-```
-
-Isi `.env` (contoh testing yang dipakai):
-
-```env
-DATABASE_URL="mysql://bem_user:GANTI_PASSWORD_DB@127.0.0.1:3306/bem_fst_prod"
-JWT_SECRET="GANTI_DENGAN_SECRET_RANDOM_PANJANG"
-JWT_EXPIRES_IN=8h
-PORT=3000
-NODE_ENV=production
-ADMIN_USERNAME=svc_core
-ADMIN_PASSWORD=BemTest12345
-UPLOAD_DIR=./uploads
-MAX_FILE_SIZE=5242880
-ALLOWED_MIME_TYPES=image/jpeg,image/png,image/gif,image/webp
-CORS_ORIGIN=https://mataf-fst.unisayogya.ac.id
-FRONTEND_URL=https://mataf-fst.unisayogya.ac.id/bem-test
-```
-
-### 16.3 Build Backend dan Start PM2
-
-```bash
-cd /opt/apps/full-web-bem-fst/backend-nest
-npm install
-npx prisma generate
-npx prisma db push
-npm run build
-pm2 start dist/main.js --name bem-api
-pm2 save
-pm2 startup systemd -u root --hp /root
-pm2 status
-```
-
-Validasi backend:
-
-```bash
-curl -I http://127.0.0.1:3000/api/v1/posts
-```
-
-### 16.4 Build Frontend untuk Subpath `/bem-test`
-
-```bash
-cd /opt/apps/full-web-bem-fst/frontend
-npm install
-npm run build -- --base=/bem-test/
-mkdir -p /var/www/bem-test
-rm -rf /var/www/bem-test/*
-cp -r dist/* /var/www/bem-test/
-```
-
-### 16.5 Pasang Nginx Location untuk Testing
-
-Tambahkan pada server block domain `mataf-fst.unisayogya.ac.id`:
-
-```nginx
-location = /bem-test {
-    return 301 /bem-test/;
-}
-
-location /bem-test/ {
-    alias /var/www/bem-test/;
-    try_files $uri $uri/ /bem-test/index.html;
-}
-
-location /api/ {
-    proxy_pass http://127.0.0.1:3000/api/;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-
-location /uploads/ {
-    proxy_pass http://127.0.0.1:3000/uploads/;
-    proxy_http_version 1.1;
-    proxy_set_header Host $host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-```
-
-Apply:
-
-```bash
-nginx -t
-systemctl reload nginx
-```
-
-Validasi:
-
-```bash
-curl -I https://mataf-fst.unisayogya.ac.id/bem-test/
-curl -I https://mataf-fst.unisayogya.ac.id/api/v1/posts
-```
-
-### 16.6 Error 1 - Asset/Logo Tidak Muncul
-
-Gejala:
-
-- Logo di navbar/footer/admin/cabinet broken.
-- Beberapa gambar slideshow broken saat akses via `/bem-test`.
-
-Akar masalah:
-
-- Path asset hardcoded absolut (`/assets/...`) tidak kompatibel dengan base path subfolder.
-
-Perbaikan source:
-
-- Ubah path gambar agar mengikuti `import.meta.env.BASE_URL`.
-
-File yang diperbaiki:
-
-- `frontend/components/Navbar.tsx`
-- `frontend/components/Footer.tsx`
-- `frontend/components/logo/logo.tsx`
-- `frontend/pages/admin/AdminLogin.tsx`
-- `frontend/pages/Cabinet.tsx`
-- `frontend/pages/Home.tsx`
-
-Setelah perbaikan source:
-
-```bash
-cd /opt/apps/full-web-bem-fst
-git pull origin main
-cd frontend
-npm run build -- --base=/bem-test/
-rm -rf /var/www/bem-test/*
-cp -r dist/* /var/www/bem-test/
-nginx -t
-systemctl reload nginx
-```
-
-### 16.7 Error 2 - Login Admin 401 Unauthorized
-
-Gejala:
-
-- API login mengembalikan 401.
-
-Diagnosis:
-
-- Kredensial request tidak sesuai env backend (sempat kirim placeholder).
-
-Verifikasi env di server:
-
-```bash
-cd /opt/apps/full-web-bem-fst/backend-nest
-grep -E "ADMIN_USERNAME|ADMIN_PASSWORD|NODE_ENV" .env
-```
-
-Restart backend agar env terbaru terbaca:
-
-```bash
-pm2 restart bem-api --update-env
-```
-
-Test login API langsung:
-
-```bash
-curl -s -X POST https://mataf-fst.unisayogya.ac.id/api/v1/auth/login -H "Content-Type: application/json" -d '{"username":"svc_core","password":"BemTest12345"}'
-```
-
-Hasil sukses yang diharapkan:
-
-- `success: true`
-- Mengandung `access_token`
-
-### 16.8 Quick Checklist Setelah Semua Fix
-
-```bash
-pm2 status
-pm2 logs bem-api --lines 50
-curl -I https://mataf-fst.unisayogya.ac.id/bem-test/
-curl -I https://mataf-fst.unisayogya.ac.id/api/v1/posts
-```
-
-Jika semua OK:
-
-- Frontend `/bem-test/` -> 200
-- API `/api/v1/posts` -> 200
-- Login admin menghasilkan token
+- Domain production BEM: aktif
+- HTTPS `bemfst.unisayogya.ac.id`: aktif
+- Frontend root domain: `200 OK`
+- API `/api/v1/posts`: `200 OK`
+- Console browser: bersih dari warning CSP/Iconify yang sebelumnya muncul
+- Metadata SEO publik production: sudah diarahkan ke domain `bemfst`
+- Hardening login dasar: aktif
+- Backup config Nginx production: sudah dilakukan
