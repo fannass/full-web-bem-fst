@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth antialiased">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <meta name="theme-color" content="#0284c7" />
+  <title>Sedang Dalam Pemeliharaan — BEM FST UNISA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #fafafa;
+      --surface: #f1f5f9;
+      --surface-elevated: #ffffff;
+      --border: rgba(226, 232, 240, 0.9);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --primary-400: #38bdf8;
+      --primary-500: #0ea5e9;
+      --primary-600: #0284c7;
+      --primary-700: #0369a1;
+      --btn-bg: #0f172a;
+      --btn-text: #ffffff;
+      --btn-hover: #1e293b;
+      --nav-bg: rgba(255, 255, 255, 0.82);
+      --shadow: 0 12px 32px -12px rgba(15, 23, 42, 0.08);
+    }
+
+    html.dark {
+      --bg: #050505;
+      --surface: #0a0a0a;
+      --surface-elevated: #111111;
+      --border: #1f1f1f;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-subtle: #64748b;
+      --btn-bg: #ffffff;
+      --btn-text: #050505;
+      --btn-hover: #e2e8f0;
+      --nav-bg: rgba(10, 10, 10, 0.82);
+      --shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.7);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.35s ease, color 0.35s ease;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .ambient-glow {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(560px circle at 20% 20%, rgba(14, 165, 233, 0.09), transparent 60%),
+        radial-gradient(480px circle at 80% 80%, rgba(2, 132, 199, 0.08), transparent 60%);
+    }
+
+    /* Floating Pill Navbar */
+    .navbar-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      display: flex;
+      justify-content: center;
+      padding: 1.25rem 1rem 0;
+    }
+
+    .navbar {
+      width: 100%;
+      max-width: 44rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 1.2rem;
+      border-radius: 9999px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      color: var(--text);
+    }
+
+    .brand-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 800;
+      font-size: 0.75rem;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .brand-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #ffffff;
+      padding: 2px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 0.88rem;
+      letter-spacing: -0.02em;
+    }
+
+    .theme-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 9999px;
+      border: 1px solid var(--border);
+      background: var(--surface-elevated);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .theme-btn:hover {
+      transform: scale(1.06);
+    }
+
+    /* Centered Simple Card */
+    main {
+      position: relative;
+      z-index: 10;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem 3rem;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 44rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1.75rem;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    @media (min-width: 640px) {
+      .card {
+        padding: 3.75rem 3rem;
+      }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.95rem;
+      border-radius: 9999px;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--primary-600);
+      margin-bottom: 1.75rem;
+    }
+
+    html.dark .badge {
+      color: var(--primary-400);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 9999px;
+      background: var(--primary-500);
+      box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.6);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.55); }
+      70% { box-shadow: 0 0 0 8px rgba(14, 165, 233, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 5vw, 3.4rem);
+      font-weight: 800;
+      line-height: 1.05;
+      letter-spacing: -0.04em;
+      margin-bottom: 1.15rem;
+    }
+
+    h1 .muted {
+      color: var(--text-subtle);
+      display: block;
+    }
+
+    .lead {
+      font-size: 0.98rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+      max-width: 28rem;
+      margin-bottom: 2rem;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.8rem 1.6rem;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 700;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, background-color 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--btn-hover);
+      transform: translateY(-1px);
+    }
+
+    /* Footer */
+    footer {
+      position: relative;
+      z-index: 10;
+      border-top: 1px solid var(--border);
+      background: var(--surface-elevated);
+      padding: 1.25rem 1rem;
+    }
+
+    .footer-inner {
+      max-width: 44rem;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-subtle);
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+      }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .animate-in {
+      animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-glow" aria-hidden="true"></div>
+
+  <div class="navbar-wrap">
+    <nav class="navbar" aria-label="Navigasi">
+      <div class="brand">
+        <div class="brand-icon" aria-hidden="true">
+          <img
+            src="/assets/images/logo/logo_BEM.png"
+            alt="Logo BEM FST"
+            onerror="this.style.display='none'; this.parentElement.textContent='FST';"
+          />
+        </div>
+        <span class="brand-name">BEM FST UNISA</span>
+      </div>
+
+      <button id="themeToggle" class="theme-btn" type="button" aria-label="Ganti Tema" title="Ganti Tema">
+        <svg id="iconSun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
+        </svg>
+        <svg id="iconMoon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+        </svg>
+      </button>
+    </nav>
+  </div>
+
+  <main>
+    <section class="card animate-in">
+      <div class="badge">
+        <span class="pulse-dot"></span>
+        Under Maintenance
+      </div>
+      <h1>
+        Website Sedang Dalam
+        <span class="muted">Pemeliharaan.</span>
+      </h1>
+      <p class="lead">
+        Website resmi <strong>BEM FST UNISA</strong> sedang dalam tahap pemeliharaan. Silakan kunjungi kembali beberapa saat lagi.
+      </p>
+      <button type="button" class="btn-primary" onclick="window.location.reload()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path>
+          <path d="M21 3v5h-5"></path>
+        </svg>
+        Cek Ulang Halaman
+      </button>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <p>&copy; <span id="year">2026</span> BEM FST UNISA. All rights reserved.</p>
+      <span>Sleman, Yogyakarta</span>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var yearEl = document.getElementById('year');
+      if (yearEl) yearEl.textContent = String(new Date().getFullYear());
+
+      var root = document.documentElement;
+      var btn = document.getElementById('themeToggle');
+      var iconSun = document.getElementById('iconSun');
+      var iconMoon = document.getElementById('iconMoon');
+
+      function applyTheme(theme) {
+        if (theme === 'dark') {
+          root.classList.add('dark');
+          iconSun.style.display = 'block';
+          iconMoon.style.display = 'none';
+        } else {
+          root.classList.remove('dark');
+          iconSun.style.display = 'none';
+          iconMoon.style.display = 'block';
+        }
+      }
+
+      var saved = null;
+      try { saved = localStorage.getItem('theme'); } catch (e) {}
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      applyTheme(saved || (prefersDark ? 'dark' : 'light'));
+
+      btn.addEventListener('click', function () {
+        var next = root.classList.contains('dark') ? 'light' : 'dark';
+        applyTheme(next);
+        try { localStorage.setItem('theme', next); } catch (e) {}
+      });
+    })();
+  </script>
+</body>
+</html>
