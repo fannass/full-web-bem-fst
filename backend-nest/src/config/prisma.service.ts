@@ -78,9 +78,4 @@ export class PrismaService {
   get activity_logs() {
     return this.prisma.activity_logs;
   }
-
-  // Generic query method
-  async query(command: string) {
-    return this.prisma.$queryRawUnsafe(command);
-  }
 }

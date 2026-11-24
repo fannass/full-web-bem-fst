@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { BigIntInterceptor } from '@/common/interceptors/bigint.interceptor';
@@ -7,7 +8,10 @@ import * as path from 'path';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Trust first proxy (Nginx) agar rate limiter (@nestjs/throttler) membaca IP klien asli
+  app.set('trust proxy', 1);
 
   // Security headers
   // crossOriginResourcePolicy: false agar gambar/file upload bisa diakses

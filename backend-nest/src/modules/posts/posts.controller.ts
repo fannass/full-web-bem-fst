@@ -14,6 +14,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  NotFoundException,
   Response,
   Req,
 } from '@nestjs/common';
@@ -24,13 +25,30 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 import { ActivityLogService } from '@/modules/activity-log/activity-log.service';
+import { AuthService } from '@/modules/auth/auth.service';
 
 @Controller('api/v1/posts')
 export class PostsController {
   constructor(
     private readonly postsService: PostsService,
     private readonly activityLogService: ActivityLogService,
+    private readonly authService: AuthService,
   ) {}
+
+  private async isAdminRequest(req?: Request): Promise<boolean> {
+    const authHeader = req?.headers?.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return false;
+    }
+    const token = authHeader.slice(7).trim();
+    if (!token) return false;
+    try {
+      const payload = await this.authService.validateToken(token);
+      return payload?.role === 'admin';
+    } catch {
+      return false;
+    }
+  }
 
   // Create post (admin only)
   @Post()
@@ -66,21 +84,47 @@ export class PostsController {
     }
   }
 
-  // Get all posts (public) — add ?status=published to filter by status
+  // Get all posts — unauthenticated callers only receive published posts
   @Get()
   async findAll(
+    @Req() req?: Request,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('status') status?: string,
   ) {
-    const pageNum = page ? parseInt(page, 10) : 1;
-    const limitNum = limit ? parseInt(limit, 10) : 6;
-    
+    let pageNum = 1;
+    if (page !== undefined && page !== '') {
+      if (!/^\d+$/.test(page)) {
+        throw new BadRequestException('Parameter page harus berupa bilangan bulat positif');
+      }
+      pageNum = Number(page);
+    }
+
+    let limitNum = 6;
+    if (limit !== undefined && limit !== '') {
+      if (!/^\d+$/.test(limit)) {
+        throw new BadRequestException('Parameter limit harus berupa bilangan bulat positif');
+      }
+      limitNum = Number(limit);
+    }
+
     if (pageNum < 1) {
       throw new BadRequestException('Page harus lebih dari 0');
     }
-    
-    const result = await this.postsService.findAll(pageNum, limitNum, status);
+
+    if (limitNum < 1 || limitNum > 100) {
+      throw new BadRequestException('Limit harus antara 1 sampai 100');
+    }
+
+    const allowedStatuses = ['published', 'draft'];
+    if (status !== undefined && status !== '' && !allowedStatuses.includes(status)) {
+      throw new BadRequestException('Status tidak valid. Gunakan: published atau draft');
+    }
+
+    const isAdmin = await this.isAdminRequest(req);
+    const effectiveStatus = isAdmin ? (status || undefined) : 'published';
+
+    const result = await this.postsService.findAll(pageNum, limitNum, effectiveStatus);
     return {
       success: true,
       data: result.data,
@@ -102,20 +146,32 @@ export class PostsController {
     }
   }
 
-  // Get post by slug (public)
+  // Get post by slug — draft posts require admin auth
   @Get('slug/:slug')
-  async findBySlug(@Param('slug') slug: string) {
+  async findBySlug(@Param('slug') slug: string, @Req() req?: Request) {
     const post = await this.postsService.findBySlug(slug);
+    if (post.status !== 'published') {
+      const isAdmin = await this.isAdminRequest(req);
+      if (!isAdmin) {
+        throw new NotFoundException(`Post dengan slug ${slug} tidak ditemukan`);
+      }
+    }
     return {
       success: true,
       data: post,
     };
   }
 
-  // Get post by ID (public)
+  // Get post by ID — draft posts require admin auth
   @Get(':id')
-  async findOne(@Param('id', ParseIntPipe) id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number, @Req() req?: Request) {
     const post = await this.postsService.findOne(id);
+    if (post.status !== 'published') {
+      const isAdmin = await this.isAdminRequest(req);
+      if (!isAdmin) {
+        throw new NotFoundException(`Post dengan ID ${id} tidak ditemukan`);
+      }
+    }
     return {
       success: true,
       data: post,

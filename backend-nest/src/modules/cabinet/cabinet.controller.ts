@@ -5,6 +5,7 @@ import {
 import { CabinetService } from './cabinet.service';
 import { CreateCabinetMemberDto, UpdateCabinetMemberDto } from './dto/create-member.dto';
 import { CreateDivisionDto } from './dto/create-division.dto';
+import { CreateCabinetDto, UpdateCabinetDto } from './dto/create-cabinet.dto';
 import { JwtGuard } from '@/common/guards/jwt.guard';
 
 @Controller('api/v1/cabinet')
@@ -52,6 +53,7 @@ export class CabinetController {
 
   // Create member
   @Post('members')
+  @UseGuards(JwtGuard)
   async createMember(@Body() dto: CreateCabinetMemberDto) {
     const member = await this.cabinetService.createMember(dto);
     return { success: true, data: member, message: 'Anggota berhasil ditambahkan' };
@@ -59,6 +61,7 @@ export class CabinetController {
 
   // Update member
   @Put('members/:id')
+  @UseGuards(JwtGuard)
   async updateMember(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateCabinetMemberDto) {
     const member = await this.cabinetService.updateMember(id, dto);
     return { success: true, data: member, message: 'Anggota berhasil diperbarui' };
@@ -66,6 +69,7 @@ export class CabinetController {
 
   // Delete member
   @Delete('members/:id')
+  @UseGuards(JwtGuard)
   async deleteMember(@Param('id', ParseIntPipe) id: number) {
     await this.cabinetService.deleteMember(id);
     return { success: true, message: 'Anggota berhasil dihapus' };
@@ -82,6 +86,7 @@ export class CabinetController {
 
   // Create division
   @Post('divisions')
+  @UseGuards(JwtGuard)
   async createDivision(@Body() dto: CreateDivisionDto) {
     const division = await this.cabinetService.createDivision(dto);
     return { success: true, data: division, message: 'Departemen berhasil ditambahkan' };
@@ -89,6 +94,7 @@ export class CabinetController {
 
   // Update division
   @Put('divisions/:id')
+  @UseGuards(JwtGuard)
   async updateDivision(@Param('id', ParseIntPipe) id: number, @Body() dto: Partial<CreateDivisionDto>) {
     const division = await this.cabinetService.updateDivision(id, dto);
     return { success: true, data: division, message: 'Departemen berhasil diperbarui' };
@@ -96,6 +102,7 @@ export class CabinetController {
 
   // Delete division
   @Delete('divisions/:id')
+  @UseGuards(JwtGuard)
   async deleteDivision(@Param('id', ParseIntPipe) id: number) {
     await this.cabinetService.deleteDivision(id);
     return { success: true, message: 'Departemen berhasil dihapus' };
@@ -106,7 +113,7 @@ export class CabinetController {
   // Create cabinet
   @Post()
   @UseGuards(JwtGuard)
-  async createCabinet(@Body() body: { period_id: number; name: string; tagline?: string; vision?: string; mission?: string; description?: string }) {
+  async createCabinet(@Body() body: CreateCabinetDto) {
     const data = await this.cabinetService.createCabinet(body);
     return { success: true, data, message: 'Kabinet berhasil ditambahkan' };
   }
@@ -114,7 +121,7 @@ export class CabinetController {
   // Update cabinet
   @Put(':id')
   @UseGuards(JwtGuard)
-  async updateCabinet(@Param('id', ParseIntPipe) id: number, @Body() body: any) {
+  async updateCabinet(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateCabinetDto) {
     const data = await this.cabinetService.updateCabinet(id, body);
     return { success: true, data, message: 'Kabinet berhasil diperbarui' };
   }

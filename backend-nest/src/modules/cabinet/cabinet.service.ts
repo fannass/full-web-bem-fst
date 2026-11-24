@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '@/config/prisma.service';
 import { CreateCabinetMemberDto, UpdateCabinetMemberDto } from './dto/create-member.dto';
 import { CreateDivisionDto } from './dto/create-division.dto';
+import { CreateCabinetDto, UpdateCabinetDto } from './dto/create-cabinet.dto';
 
 @Injectable()
 export class CabinetService {
@@ -55,7 +56,7 @@ export class CabinetService {
 
   async getCabinetById(id: number) {
     const cabinet = await this.prisma.cabinets.findUnique({
-      where: { id },
+      where: { id: BigInt(id) },
       include: {
         divisions: {
           include: {
@@ -214,36 +215,76 @@ export class CabinetService {
 
   // ===== CABINET CRUD =====
 
-  async createCabinet(dto: { period_id: number; name: string; tagline?: string; vision?: string; mission?: string; description?: string }) {
-    return this.prisma.cabinets.create({
-      data: {
-        period_id: BigInt(dto.period_id),
-        name: dto.name,
-        tagline: dto.tagline,
-        vision: dto.vision,
-        mission: dto.mission,
-        description: dto.description,
-        created_at: new Date(),
-        updated_at: new Date(),
-      },
+  async createCabinet(dto: CreateCabinetDto) {
+    const periodId = BigInt(dto.period_id);
+    const periodExists = await this.prisma.periods.findUnique({
+      where: { id: periodId },
     });
+
+    if (!periodExists) {
+      throw new BadRequestException(`Periode dengan ID ${dto.period_id} tidak ditemukan`);
+    }
+
+    try {
+      return await this.prisma.cabinets.create({
+        data: {
+          period_id: periodId,
+          name: dto.name.trim(),
+          tagline: dto.tagline?.trim() || null,
+          logo: dto.logo?.trim() || null,
+          vision: dto.vision?.trim() || null,
+          mission: dto.mission?.trim() || null,
+          description: dto.description?.trim() || null,
+          created_at: new Date(),
+          updated_at: new Date(),
+        },
+      });
+    } catch (error) {
+      console.error('Error saat membuat kabinet:', error);
+      throw new InternalServerErrorException('Gagal membuat kabinet baru');
+    }
   }
 
-  async updateCabinet(id: number, dto: { period_id?: number; name?: string; tagline?: string; vision?: string; mission?: string; description?: string }) {
+  async updateCabinet(id: number, dto: UpdateCabinetDto) {
     const exists = await this.prisma.cabinets.findUnique({ where: { id: BigInt(id) } });
     if (!exists) throw new NotFoundException(`Kabinet dengan ID ${id} tidak ditemukan`);
-    return this.prisma.cabinets.update({
-      where: { id: BigInt(id) },
-      data: {
-        ...(dto.period_id !== undefined && { period_id: BigInt(dto.period_id) }),
-        ...(dto.name !== undefined && { name: dto.name }),
-        ...(dto.tagline !== undefined && { tagline: dto.tagline }),
-        ...(dto.vision !== undefined && { vision: dto.vision }),
-        ...(dto.mission !== undefined && { mission: dto.mission }),
-        ...(dto.description !== undefined && { description: dto.description }),
-        updated_at: new Date(),
-      },
-    });
+
+    if (dto.period_id !== undefined) {
+      const periodId = BigInt(dto.period_id);
+      const periodExists = await this.prisma.periods.findUnique({
+        where: { id: periodId },
+      });
+      if (!periodExists) {
+        throw new BadRequestException(`Periode dengan ID ${dto.period_id} tidak ditemukan`);
+      }
+    }
+
+    let trimmedName: string | undefined;
+    if (dto.name !== undefined) {
+      trimmedName = dto.name.trim();
+      if (!trimmedName) {
+        throw new BadRequestException('Nama kabinet tidak boleh kosong');
+      }
+    }
+
+    try {
+      return await this.prisma.cabinets.update({
+        where: { id: BigInt(id) },
+        data: {
+          ...(dto.period_id !== undefined && { period_id: BigInt(dto.period_id) }),
+          ...(trimmedName !== undefined && { name: trimmedName }),
+          ...(dto.tagline !== undefined && { tagline: dto.tagline?.trim() || null }),
+          ...(dto.logo !== undefined && { logo: dto.logo?.trim() || null }),
+          ...(dto.vision !== undefined && { vision: dto.vision?.trim() || null }),
+          ...(dto.mission !== undefined && { mission: dto.mission?.trim() || null }),
+          ...(dto.description !== undefined && { description: dto.description?.trim() || null }),
+          updated_at: new Date(),
+        },
+      });
+    } catch (error) {
+      console.error(`Error saat memperbarui kabinet ${id}:`, error);
+      throw new InternalServerErrorException('Gagal memperbarui kabinet');
+    }
   }
 
   async deleteCabinet(id: number) {

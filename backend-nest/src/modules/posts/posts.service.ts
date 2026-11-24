@@ -145,7 +145,7 @@ export class PostsService {
           where: { slug: newSlug },
         });
 
-        if (existingPost && existingPost.id !== id) {
+        if (existingPost && existingPost.id !== BigInt(id)) {
           throw new BadRequestException(`Post dengan judul "${updatePostDto.title}" sudah ada`);
         }
         
@@ -323,7 +323,7 @@ export class PostsService {
       return sitemap;
     } catch (error) {
       console.error('Error generating sitemap:', error);
-      throw new InternalServerErrorException(`Gagal membuat sitemap: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new InternalServerErrorException('Gagal membuat sitemap, silakan coba lagi');
     }
   }
 
